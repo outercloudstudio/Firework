@@ -7,6 +7,8 @@ function isInteger(str){
 
     if(str.includes(' ')) return false
 
+    if(str.includes('\n')) return false
+
     return Number.isInteger(Number(str))
 }
 
@@ -17,8 +19,6 @@ function isFloat(){
 const whitespace = [
     ' ',
     '\t',
-    '\n',
-    '\r',
 ]
 
 const symbols = [
@@ -47,8 +47,8 @@ const symbols = [
     '#',
     '$',
     '%',
-    '\"',
-    '\'',
+    '"',
+    "'",
 ]
 
 const keywords = [
@@ -108,6 +108,13 @@ function tokenize(input) {
                 foundAt = i
 
                 break
+            }else if(sub == '\n'){
+                tokens.push({ value: sub, token: 'NEW LINE' })
+
+                found = true
+                foundAt = i
+
+                break
             }
         }
 
@@ -130,7 +137,5 @@ function tokenize(input) {
 
     return tokens
 }
-
-console.log(tokenize('var foo = 1'))
 
 module.exports = { tokenize }

@@ -1,0 +1,136 @@
+function isInteger(str){
+    if(typeof str !== 'string') return false
+
+    if(str.length == 0) return false
+
+    if(str.includes('.')) return false
+
+    if(str.includes(' ')) return false
+
+    return Number.isInteger(Number(str))
+}
+
+function isFloat(){
+
+}
+
+const whitespace = [
+    ' ',
+    '\t',
+    '\n',
+    '\r',
+]
+
+const symbols = [
+    '(',
+    ')',
+    '+',
+    '-',
+    '*',
+    '/',
+    '%',
+    '=',
+    '<',
+    '>',
+    '!',
+    '&',
+    '|',
+    '^',
+    '~',
+    ';',
+    ':',
+    '.',
+    ',',
+    '?',
+    '!',
+    '@',
+    '#',
+    '$',
+    '%',
+    '\"',
+    '\'',
+]
+
+const keywords = [
+    'if',
+    'else',
+    'var',
+    'const'
+]
+
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+}
+
+function tokenize(input) {
+    let tokens = []
+
+    let readStart = 0
+
+    let lastUnkown = -1
+
+    while(readStart < input.length) {
+        let found = false
+        let foundAt = -1
+
+        for(let i = input.length + 1; i >= readStart; i--) {
+            const sub = input.substring(readStart, i)
+
+            if(isInteger(sub)){
+                tokens.push({ value: sub, token: 'INTEGER' })
+
+                found = true
+                foundAt = i
+
+                break
+            }else if(whitespace.includes(sub)){
+                tokens.push({ value: sub, token: 'WHITESPACE' })
+
+                found = true
+                foundAt = i
+
+                break
+            }else if(symbols.includes(sub)){         
+                tokens.push({ value: sub, token: 'SYMBOL' })
+
+                found = true
+                foundAt = i
+
+                break
+            }else if(keywords.includes(sub)){
+                tokens.push({ value: sub, token: 'KEYWORD' })
+
+                found = true
+                foundAt = i
+
+                break
+            }
+        }
+
+        if(found){
+            if(lastUnkown != -1){
+                tokens.splice(tokens.length - 1, 0, { value: input.substring(lastUnkown, readStart), token: 'NAME' })
+
+                lastUnkown = -1
+            }
+
+            readStart = foundAt
+        }else{
+            if(lastUnkown == -1) lastUnkown = readStart
+
+            readStart++
+        }
+    }
+
+    if(lastUnkown != -1) tokens.splice(tokens.length - 1, { value: input.substring(lastUnkown, readStart), token: 'NAME' })
+
+    return tokens
+}
+
+console.log(tokenize('var foo = 1'))
+
+module.exports = { tokenize }

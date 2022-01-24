@@ -3,10 +3,10 @@ const util = require('util')
 const Tokenizer = require('./Tokenizer')
 const Compiler = require('./Compiler')
 
-const tokens = Tokenizer.tokenize(`(1 + 2) * 3
-8 * 8
-6 - 2`)
+const tokens = Tokenizer.tokenize(`print("Hello World", "Goodbye World")`)
 
-const ETree = Compiler.generateETree(tokens)
+//console.log(util.inspect(tokens, false, null, true /* enable colors */))
+
+const ETree = Compiler.generateFullETree(tokens)
 
 console.log(util.inspect(ETree, false, null, true /* enable colors */))

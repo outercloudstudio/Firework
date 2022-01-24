@@ -8,7 +8,7 @@ function generateETreeExpressions(tokens){
         if(token.token == 'SYMBOL' && token.value == '('){
             let prevToken = tokens[i - 1]
 
-            if(!prevToken || prevToken.token == 'NAME'){
+            if(!(prevToken && prevToken.token == 'NAME')){
                 let endingIndex = -1
 
                 for(let j = i + 1; j < tokens.length; j++){
@@ -62,7 +62,7 @@ function generateETreeExpressions(tokens){
             }
         }
     }
-    
+
     return tokens
 }
 
@@ -79,8 +79,8 @@ function generateETree(tokens){
 
             if(inString){
                 inStringIndex = i
-            }else{
-                let tokensInString = tokens.slice(inStringIndex + 1, i - 1)
+            }else{            
+                let tokensInString = tokens.slice(inStringIndex + 1, i)
 
                 let resultString = ''
 
@@ -89,6 +89,8 @@ function generateETree(tokens){
                 }
 
                 tokens.splice(inStringIndex, i - inStringIndex + 1, { value: resultString, token: 'STRING' })
+
+                i -= i - inStringIndex
             }
         }
         
@@ -119,4 +121,32 @@ function generateETree(tokens){
     return tokens
 }
 
-module.exports = { generateETree }
+function generateFullETree(tokens){
+    let lines = []
+
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'NEWLINE'){
+            lines.push(tokens.slice(0, i))
+
+            tokens.splice(0, i + 1)
+
+            i = 0
+        }
+    }
+
+    lines.push(tokens.slice(0, tokens.length))
+
+    tokens = lines
+
+    for(let i = 0; i < tokens.length; i++){
+        lines[i] = generateETree(tokens[i])
+    }
+
+    tokens = lines
+
+    return lines
+}
+
+module.exports = { generateFullETree }

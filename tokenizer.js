@@ -109,7 +109,7 @@ function tokenize(input) {
 
                 break
             }else if(sub == '\n'){
-                tokens.push({ value: sub, token: 'NEW LINE' })
+                tokens.push({ value: sub, token: 'NEWLINE' })
 
                 found = true
                 foundAt = i

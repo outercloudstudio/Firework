@@ -1,15 +1,15 @@
 # How The Compiler Works
 
-## 1. Parse Tokens
+## 1. Parse Tokens ✔️
   Tokenizer.js splits the code into very basic tokens such as `NEWLINE` and `INTEGER`.
 
-## 2. Sperate Lines
+## 2. Sperate Lines ✔️
   Compiler.js then splits the tokens into lists by the `NEWLINE` token.
 
-## 3. Build Code Blocks
+## 3. Build Code Blocks ✔️
   Compiler.js then combines all lines within the `{` and `}` symbols into a `CODEBLOCK`.
 
-## 4. Build Compound Types
+## 4. Build Compound Types ✔️
   Compiler.js combines different tokens such as numbers and strings into one token. This also allows `$Flag` to create a `FLAG` token. This also removes any `WHITESPACE` tokens not in a string already.
 
 ## 5. Build Expressions

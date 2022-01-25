@@ -94,63 +94,6 @@ function generateETreeFuncParams(tokens){
     }
 }
 
-function generateETreeOld(tokens){
-    let inString = false
-    let inStringIndex = -1
-
-    //Remove Whitespace and Create Strings
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && (token.value == '"' || token.value == "'")){
-            inString = !inString
-
-            if(inString){
-                inStringIndex = i
-            }else{            
-                let tokensInString = tokens.slice(inStringIndex + 1, i)
-
-                let resultString = ''
-
-                for(j in tokensInString){
-                    resultString += tokensInString[j].value
-                }
-
-                tokens.splice(inStringIndex, i - inStringIndex + 1, { value: resultString, token: 'STRING' })
-
-                i -= i - inStringIndex
-            }
-        }
-        
-        if(token.token == 'WHITESPACE' && !inString){
-            tokens.splice(i, 1)
-
-            i--
-        }
-    }
-
-    //Combine Numbers
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'INTEGER'){
-            let nextToken = tokens[i + 1]
-
-            if(nextToken && nextToken.token == 'INTEGER'){
-                tokens.splice(i, 2, { value: token.value + nextToken.value, token: 'INTEGER' })
-
-                i--
-            }
-        }
-    }
-
-    tokens = generateETreeExpressions(tokens)
-
-    tokens = generateETreeFuncParams(tokens)
-
-    return tokens
-}
-
 function splitLines(tokens){
     for(let i = 0; i < tokens.length; i++){
         const token = tokens[i]
@@ -231,6 +174,86 @@ function buildCodeBlocks(tokens){
     return tokens
 }
 
+function buildCompoundTypes(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        console.log('Building Line: ' + l)
+        console.log(tokens[l])
+        console.log('')
+            
+        let inString = false
+        let inStringIndex = -1
+
+        //Go Deeper Into Blocks
+        for(let i = 0; i < tokens[l].length; i++){
+            if(tokens[l][i].token == 'BLOCK'){
+                console.log('Entering Block...')
+                tokens[l][i].value = buildCompoundTypes(tokens[l][i].value)
+                console.log('Left Block')
+            }
+        }
+
+        //Remove Whitespace and Create Strings
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+
+            if(token.token == 'SYMBOL' && (token.value == '"' || token.value == "'")){
+                inString = !inString
+
+                if(inString){
+                    inStringIndex = i
+                }else{            
+                    let tokensInString = tokens[l].slice(inStringIndex + 1, i)
+
+                    let resultString = ''
+
+                    for(j in tokensInString){
+                        resultString += tokensInString[j].value
+                    }
+
+                    tokens[l].splice(inStringIndex, i - inStringIndex + 1, { value: resultString, token: 'STRING' })
+
+                    i -= i - inStringIndex
+                }
+            }
+            
+            if(token.token == 'WHITESPACE' && !inString){
+                tokens[l].splice(i, 1)
+
+                i--
+            }
+        }
+
+        //Combine Numbers
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+
+            if(token.token == 'INTEGER'){
+                let nextToken = tokens[l][i + 1]
+
+                if(nextToken && nextToken.token == 'INTEGER'){
+                    tokens[l].splice(i, 2, { value: token.value + nextToken.value, token: 'INTEGER' })
+
+                    i--
+                }
+            }
+        }
+
+        //Build Flags
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const prevToken = tokens[l][i - 1]
+
+            if(token.token == 'NAME' && prevToken && prevToken.token == 'SYMBOL' && prevToken.value == '$'){
+                tokens[l].splice(i - 1, 2, { value: token.value, token: 'FLAG' })
+
+                i--
+            }
+        }
+    }
+
+    return tokens
+}
+
 function generateETree(tokens){
     tokens = splitLines(tokens)
     
@@ -242,6 +265,8 @@ function generateETree(tokens){
             i--
         }
     }
+
+    tokens = buildCompoundTypes(tokens)
 
     return tokens
 }

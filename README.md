@@ -12,7 +12,7 @@
 ## 4. Build Compound Types ✔️
   Compiler.js combines different tokens such as numbers and strings into one token. This also allows `$Flag` to create a `FLAG` token. This also removes any `WHITESPACE` tokens not in a string already.
 
-## 5. Build Expressions
+## 5. Build Expressions ⚠️
   Compiler.js creates expressions from symbols such as `+ - * / ^ && || ! == != > < <= >=` along with any ones grouped in parantheses into an `EXPRESSION`.
 
 ## 6. Build Function Params

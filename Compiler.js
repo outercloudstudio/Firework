@@ -22,8 +22,6 @@ function generateETreeExpressions(tokens){
 
                 let insideTokens = tokens.slice(i + 1, endingIndex)
 
-                //tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
-
                 tokens.splice(i, endingIndex - i + 1, { value: generateETreeExpressions(insideTokens), token: 'EXPRESSION' })
 
                 i--
@@ -66,7 +64,37 @@ function generateETreeExpressions(tokens){
     return tokens
 }
 
-function generateETree(tokens){
+function generateETreeFuncParams(tokens){
+    //Create Function Params
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'SYMBOL' && token.value == '('){
+            let prevToken = tokens[i - 1]
+
+            if(prevToken && prevToken.token == 'NAME'){
+                let endingIndex = -1
+
+                for(let j = i + 1; j < tokens.length; j++){
+                    const nextToken = tokens[j]
+
+                    if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
+                        endingIndex = j
+                        break;
+                    }
+                }
+
+                let insideTokens = tokens.slice(i + 1, endingIndex)
+
+                //tokens.splice(i, endingIndex - i + 1, { value: generateETreeExpressions(insideTokens), token: 'FUNCTIONPARAM' })
+
+                i--
+            }
+        }
+    }
+}
+
+function generateETreeOld(tokens){
     let inString = false
     let inStringIndex = -1
 
@@ -118,10 +146,12 @@ function generateETree(tokens){
 
     tokens = generateETreeExpressions(tokens)
 
+    tokens = generateETreeFuncParams(tokens)
+
     return tokens
 }
 
-function generateFullETree(tokens){
+function splitLines(tokens){
     let lines = []
 
     for(let i = 0; i < tokens.length; i++){
@@ -138,15 +168,25 @@ function generateFullETree(tokens){
 
     lines.push(tokens.slice(0, tokens.length))
 
-    tokens = lines
-
-    for(let i = 0; i < tokens.length; i++){
-        lines[i] = generateETree(tokens[i])
-    }
-
-    tokens = lines
-
     return lines
 }
 
-module.exports = { generateFullETree }
+function buildCodeBlocks(tokens){
+
+
+  for(let x = 0; x < tokens.length; x++){
+    for(let y = 0; y < tokens[x].length; y++){
+      if(tokens[x][y].value == '{' && tokens[x][y].token == 'SYMBOL'){
+        
+      }
+    }
+  }
+}
+
+function generateETree(tokens){
+    tokens = splitLines(tokens)
+
+    return tokens
+}
+
+module.exports = { generateETree }

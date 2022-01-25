@@ -152,6 +152,19 @@ function generateETreeOld(tokens){
 }
 
 function splitLines(tokens){
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        const nextToken = tokens[i + 1]
+
+        if(token.token == 'NEWLINE' && nextToken && nextToken.token == 'NEWLINE'){
+            tokens.splice(i, 1)
+            tokens[i].value = '\n'
+
+            i--
+        }
+    }
+
     let lines = []
 
     for(let i = 0; i < tokens.length; i++){
@@ -172,19 +185,63 @@ function splitLines(tokens){
 }
 
 function buildCodeBlocks(tokens){
+    let openPaths = []
 
+    for(let x = 0; x < tokens.length; x++){
+        for(let y = 0; y < tokens[x].length; y++){
+            if(tokens[x][y].value == '{' && tokens[x][y].token == 'SYMBOL'){
+                openPaths.push({ x: x, y: y })
+            }
 
-  for(let x = 0; x < tokens.length; x++){
-    for(let y = 0; y < tokens[x].length; y++){
-      if(tokens[x][y].value == '{' && tokens[x][y].token == 'SYMBOL'){
-        
-      }
+            if(tokens[x][y].value == '}' && tokens[x][y].token == 'SYMBOL'){
+                let openPath = openPaths.pop()
+
+                let inBlockLines = []
+
+                for(let i = openPath.x; i <= x; i++){
+                    if(i == openPath.x){
+                        inBlockLines.push(tokens[i].slice(openPath.y + 1, tokens[i].length))
+                    }else if(i == x){
+                        inBlockLines.push(tokens[i].slice(0, y))
+                    }else{
+                        inBlockLines.push(tokens[i])
+                    }
+                }
+
+                for(let i = 0; i < inBlockLines.length; i++){
+                    if(inBlockLines[i].length == 0){
+                        inBlockLines.splice(i, 1)
+                        i--
+                    }
+                }
+
+                tokens[openPath.x].splice(openPath.y, tokens[openPath.x].length, { value: inBlockLines, token: 'BLOCK' })
+
+                tokens[x].splice(0, y + 1)
+
+                if(x - openPath.x > 1){
+                    tokens.splice(openPath.x + 1, x - openPath.x - 1)
+                }
+
+                x -= x - openPath.x - 1
+            }
+        }
     }
-  }
+
+    return tokens
 }
 
 function generateETree(tokens){
     tokens = splitLines(tokens)
+    
+    tokens = buildCodeBlocks(tokens)
+
+    for(let i = 0; i < tokens.length; i++){
+        if(tokens[i].length == 0){
+            tokens.splice(i, 1)
+            i--
+        }
+    }
 
     return tokens
 }

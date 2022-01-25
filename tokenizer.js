@@ -1,5 +1,5 @@
 function isInteger(str){
-    if(typeof str !== 'string') return false
+    if(typeof str != 'string') return false
 
     if(str.length == 0) return false
 
@@ -8,6 +8,8 @@ function isInteger(str){
     if(str.includes(' ')) return false
 
     if(str.includes('\n')) return false
+
+    if(str.includes('\r')) return false
 
     return Number.isInteger(Number(str))
 }
@@ -49,6 +51,8 @@ const symbols = [
     '%',
     '"',
     "'",
+    '{',
+    '}',
 ]
 
 const keywords = [
@@ -109,6 +113,13 @@ function tokenize(input) {
 
                 break
             }else if(sub == '\n'){
+                tokens.push({ value: sub, token: 'NEWLINE' })
+
+                found = true
+                foundAt = i
+
+                break
+            }else if(sub == '\r'){
                 tokens.push({ value: sub, token: 'NEWLINE' })
 
                 found = true

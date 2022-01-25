@@ -57,9 +57,8 @@ const symbols = [
 
 const keywords = [
     'if',
-    'else',
-    'var',
-    'const'
+    'const',
+    'dyn'
 ]
 
 function sleep(milliseconds) {

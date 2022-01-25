@@ -1,69 +1,5 @@
 const util = require('util')
 
-function generateETreeExpressions(tokens){
-    //Create Parantheses Groups
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && token.value == '('){
-            let prevToken = tokens[i - 1]
-
-            if(!(prevToken && prevToken.token == 'NAME')){
-                let endingIndex = -1
-
-                for(let j = i + 1; j < tokens.length; j++){
-                    const nextToken = tokens[j]
-
-                    if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
-                        endingIndex = j
-                        break;
-                    }
-                }
-
-                let insideTokens = tokens.slice(i + 1, endingIndex)
-
-                tokens.splice(i, endingIndex - i + 1, { value: generateETreeExpressions(insideTokens), token: 'EXPRESSION' })
-
-                i--
-            }
-        }
-    }
-
-    //Create Expressions * and /
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && (token.value == '*' || token.value == '/')){
-            let nextToken = tokens[i + 1]
-            let prevToken = tokens[i - 1]
-
-            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (nextToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
-
-                i--
-            }
-        }
-    }
-
-    //Create Expressions + and -
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && (token.value == '+' || token.value == '-')){
-            let nextToken = tokens[i + 1]
-            let prevToken = tokens[i - 1]
-
-            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (nextToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
-
-                i--
-            }
-        }
-    }
-
-    return tokens
-}
-
 function generateETreeFuncParams(tokens){
     //Create Function Params
     for(let i = 0; i < tokens.length; i++){
@@ -176,19 +112,13 @@ function buildCodeBlocks(tokens){
 
 function buildCompoundTypes(tokens){
     for(let l = 0; l < tokens.length; l++){
-        console.log('Building Line: ' + l)
-        console.log(tokens[l])
-        console.log('')
-            
         let inString = false
         let inStringIndex = -1
 
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                console.log('Entering Block...')
                 tokens[l][i].value = buildCompoundTypes(tokens[l][i].value)
-                console.log('Left Block')
             }
         }
 
@@ -254,6 +184,121 @@ function buildCompoundTypes(tokens){
     return tokens
 }
 
+function buildExpressionsSingle(tokens){
+    //Create Parantheses Groups
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'SYMBOL' && token.value == '('){
+            let prevToken = tokens[i - 1]
+
+            if(!(prevToken && (prevToken.token == 'NAME' || prevToken.token == 'KEYWORD'))){
+                let endingIndex = -1
+
+                for(let j = i + 1; j < tokens.length; j++){
+                    const nextToken = tokens[j]
+
+                    if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
+                        endingIndex = j
+                        break;
+                    }
+                }
+
+                let insideTokens = tokens.slice(i + 1, endingIndex)
+
+                tokens.splice(i, endingIndex - i + 1, { value: buildExpressionsSingle(insideTokens), token: 'EXPRESSION' })
+
+                i--
+            }
+        }
+    }
+
+    //Create Expressions * and /
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'SYMBOL' && (token.value == '*' || token.value == '/')){
+            let nextToken = tokens[i + 1]
+            let prevToken = tokens[i - 1]
+
+            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
+
+                i--
+            }
+        }
+    }
+
+    //Create Expressions + and -
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'SYMBOL' && (token.value == '+' || token.value == '-')){
+            let nextToken = tokens[i + 1]
+            let prevToken = tokens[i - 1]
+
+            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
+
+                i--
+            }
+        }
+    }
+
+    //Create Expressions !
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'SYMBOL' && token.value == '!'){
+            let nextToken = tokens[i + 1]
+
+            if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG')){
+                tokens.splice(i, 2, { value: [token, nextToken], token: 'EXPRESSION' })
+            }
+        }
+    }
+
+    //Create Expressions || and &&
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+        const nextToken = tokens[i + 1]
+
+        if(token.token == 'SYMBOL' && nextToken && nextToken.token == 'SYMBOL' && ((token.value == '|' && nextToken.value == '|') || (token.value == '&' && nextToken.value == '&'))){
+            let nextNextToken = tokens[i + 2]
+            let prevToken = tokens[i - 1]
+
+            if(prevToken && nextToken && (nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'BOOLEAN' || prevToken.token == 'EXPRESSION')){
+                const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
+                
+                tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+
+                i--
+            }
+        }
+    }
+
+    console.log('Built Expressions Single:')
+    console.log(util.inspect(tokens, false, null, true))
+    console.log('')
+
+    return tokens
+}
+
+function buildExpressions(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        //Go Deeper Into Blocks
+        for(let i = 0; i < tokens[l].length; i++){
+            if(tokens[l][i].token == 'BLOCK'){
+                tokens[l][i].value = buildExpressions(tokens[l][i].value)
+            }
+        }
+
+        tokens[l] = buildExpressionsSingle(tokens[l])
+    }
+
+    return tokens
+}
+
 function generateETree(tokens){
     tokens = splitLines(tokens)
     
@@ -267,6 +312,8 @@ function generateETree(tokens){
     }
 
     tokens = buildCompoundTypes(tokens)
+
+    tokens = buildExpressions(tokens)
 
     return tokens
 }

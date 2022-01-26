@@ -4,7 +4,7 @@ const fs = require('fs')
 const Tokenizer = require('./Tokenizer')
 const Compiler = require('./Compiler')
 
-const tokens = Tokenizer.tokenize(fs.readFileSync('./World.frw').toString())
+const tokens = Tokenizer.tokenize(fs.readFileSync('./Param.frw').toString())
 
 //console.log(util.inspect(tokens, false, null, true /* enable colors */))
 

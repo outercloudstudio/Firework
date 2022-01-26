@@ -1,33 +1,11 @@
 const util = require('util')
 
-function generateETreeFuncParams(tokens){
-    //Create Function Params
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && token.value == '('){
-            let prevToken = tokens[i - 1]
-
-            if(prevToken && prevToken.token == 'NAME'){
-                let endingIndex = -1
-
-                for(let j = i + 1; j < tokens.length; j++){
-                    const nextToken = tokens[j]
-
-                    if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
-                        endingIndex = j
-                        break;
-                    }
-                }
-
-                let insideTokens = tokens.slice(i + 1, endingIndex)
-
-                //tokens.splice(i, endingIndex - i + 1, { value: generateETreeExpressions(insideTokens), token: 'FUNCTIONPARAM' })
-
-                i--
-            }
-        }
-    }
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
 }
 
 function splitLines(tokens){
@@ -179,6 +157,17 @@ function buildCompoundTypes(tokens){
                 i--
             }
         }
+
+        //Build Empty Function Calls
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+
+            if(token.token == 'NAME' && nextToken && nextToken.value == '(' && nextNextToken && nextNextToken.value == ')'){
+                tokens[l].splice(i, 3, { value: [token.value], token: 'CALL' })
+            }
+        }
     }
 
     return tokens
@@ -206,7 +195,7 @@ function buildExpressionsSingle(tokens){
 
                 let insideTokens = tokens.slice(i + 1, endingIndex)
 
-                tokens.splice(i, endingIndex - i + 1, { value: buildExpressionsSingle(insideTokens), token: 'EXPRESSION' })
+                tokens.splice(i, endingIndex - i + 1, { value: buildParamsSingle(insideTokens), token: 'EXPRESSION' })
 
                 i--
             }
@@ -317,23 +306,157 @@ function buildExpressionsSingle(tokens){
         }
     }
 
-    console.log('Built Expressions Single:')
+    return tokens[0]
+}
+
+function buildParamsSingle(tokens){
+    console.log('Building params:')
     console.log(util.inspect(tokens, false, null, true))
-    console.log('')
+
+    //Go Into Complex Function Calls
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+
+        if(token.token == 'SYMBOL' && token.value == '('){
+            const prevToken = tokens[i - 1]
+
+            if(prevToken && prevToken.token == 'NAME'){
+                for(let j = i + 1; j < tokens.length; j++){
+                    const otherToken = tokens[j]
+
+                    if(otherToken.token == 'SYMBOL' && otherToken.value == '('){
+                        const otherPrevToken = tokens[j - 1]
+
+                        if(otherPrevToken && otherPrevToken.token == 'NAME'){
+                            let opensFound = 0
+
+                            let endIndex = -1
+
+                            for(let u = j + 1; u < tokens.length; u++){
+                                const otherOtherToken = tokens[u]
+            
+                                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
+                                    opensFound++
+                                }
+
+                                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == ')'){
+                                    if(opensFound == 0){
+                                        endIndex = u
+
+                                        break
+                                    }else{
+                                        opensFound--
+                                    }
+                                }
+                            }
+
+                            console.log('Entering at: ' + j.toString())
+                            console.log(util.inspect(tokens, false, null, true))
+
+                            let parsed = buildParamsSingle(tokens.slice(j - 1, endIndex + 1))[0]
+
+                            tokens.splice(j - 1, endIndex - j + 2, parsed)
+
+                            console.log('Returned:')
+                            console.log(util.inspect(parsed, false, null, true))
+                            console.log('Now:')
+                            console.log(util.inspect(tokens, false, null, true))
+
+                            sleep(5000)
+                        }
+                    }
+                }
+            }
+
+            let opensFound = 0
+
+            let endIndex = -1
+
+            for(let u = i + 1; u < tokens.length; u++){
+                const otherOtherToken = tokens[u]
+
+                console.log('Looking For End')
+                console.log(otherOtherToken)
+
+                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
+                    opensFound++
+                }
+
+                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == ')'){
+                    if(opensFound == 0){
+                        endIndex = u
+
+                        break
+                    }else{
+                        opensFound--
+                    }
+                }
+            }
+
+            //Build Expressions Between Commas
+            let groups = []
+            let lastGroupPos = i
+
+            console.log(endIndex)
+            console.log(opensFound)
+
+            for(let k = i; k < endIndex; k++){
+                const goalToken = tokens[k]
+
+                console.log('Splitting')
+                console.log(token)
+
+                if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
+                    let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))
+                    groups.push(group)
+
+                    console.log('Added: ')
+                    console.log(util.inspect(tokens.slice(lastGroupPos + 1, k), false, null, true))
+                    console.log('Now: ')
+                    console.log(util.inspect(group, false, null, true))
+
+                    lastGroupPos = k
+                }
+            }
+
+            let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))
+            groups.push(group)
+
+            console.log('Added: ')
+            console.log(util.inspect(tokens.slice(lastGroupPos + 1, endIndex), false, null, true))
+            console.log('Now: ')
+            console.log(util.inspect(group, false, null, true))
+
+            console.log('Groups:')
+            console.log(util.inspect(groups, false, null, true))
+
+            groups.unshift(prevToken)
+
+            console.log('Before Replaced: ')
+            console.log(util.inspect(tokens, false, null, true))
+
+            tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'Call' })
+
+            console.log('Replaced: ')
+            console.log(util.inspect(tokens, false, null, true))
+        }
+    }
+
+    sleep(5000)
 
     return tokens
 }
 
-function buildExpressions(tokens){
+function buildParams(tokens){
     for(let l = 0; l < tokens.length; l++){
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildExpressions(tokens[l][i].value)
+                tokens[l][i].value = buildParams(tokens[l][i].value)
             }
         }
 
-        tokens[l] = buildExpressionsSingle(tokens[l])
+        tokens[l] = buildParamsSingle(tokens[l])
     }
 
     return tokens
@@ -353,7 +476,7 @@ function generateETree(tokens){
 
     tokens = buildCompoundTypes(tokens)
 
-    tokens = buildExpressions(tokens)
+    tokens = buildParams(tokens)
 
     return tokens
 }

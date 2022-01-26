@@ -258,6 +258,46 @@ function buildExpressionsSingle(tokens){
         }
     }
 
+    //Create Expressions == > < >= <=
+    for(let i = 0; i < tokens.length; i++){
+        const token = tokens[i]
+        const nextToken = tokens[i + 1]
+
+        if(token.token == 'SYMBOL' && (token.value == '=' || token.value == '>' || token.value == '<')){
+            let prevToken = tokens[i - 1]
+
+            if(prevToken && nextToken){
+                if(nextToken.token == 'SYMBOL' && nextToken.value == '='){
+                    let nextNextToken = tokens[i + 2]
+                    
+                    if(token.value == '>' || token.value == '<'){
+                      if((nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                          const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
+                          
+                          tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+
+                          i--
+                      }
+                    }else{
+                      if((nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN')){
+                          const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
+                          
+                          tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+
+                          i--
+                      }
+                    }
+                }else if(token.value == '>' || token.value == '<'){
+                    if((nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                        tokens.splice(i - 1, 4, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
+
+                        i--
+                    }
+                }
+            }
+        }
+    }
+
     //Create Expressions || and &&
     for(let i = 0; i < tokens.length; i++){
         const token = tokens[i]
@@ -267,7 +307,7 @@ function buildExpressionsSingle(tokens){
             let nextNextToken = tokens[i + 2]
             let prevToken = tokens[i - 1]
 
-            if(prevToken && nextToken && (nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'BOOLEAN' || prevToken.token == 'EXPRESSION')){
+            if(prevToken && nextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION')){
                 const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
                 
                 tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })

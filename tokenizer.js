@@ -125,6 +125,13 @@ function tokenize(input) {
                 foundAt = i
 
                 break
+            }else if(sub == 'false' || sub == 'true'){
+                tokens.push({ value: sub, token: 'BOOLEAN' })
+
+                found = true
+                foundAt = i
+
+                break
             }
         }
 

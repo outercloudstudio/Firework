@@ -12,16 +12,14 @@
 ## 4. Build Compound Types ✔️
   Compiler.js combines different tokens such as numbers and strings into one token. This also allows `$Flag` to create a `FLAG` token. This also removes any `WHITESPACE` tokens not in a string already.
 
-## 5. Build Expressions and Function Params ⚠️
+## 5. Build Expressions and Function Params and Calls ✔️
   Compiler.js creates expressions from symbols such as `+ - * / ^ && || ! == != > < <= >=` along with any ones grouped in parantheses into an `EXPRESSION` and function calls.
 
-## 6. Build Function Calls
+## 6. Build Asignments ⚠️
 
-## 7. Build Asignments
+## 7. Build Delays / Ifs
 
-## 8. Build Delays / Ifs
-
-## 9. Build Functions
+## 8. Build Functions
 
 ## Example
   We will break down how this code is compiled:

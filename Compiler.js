@@ -310,9 +310,6 @@ function buildExpressionsSingle(tokens){
 }
 
 function buildParamsSingle(tokens){
-    console.log('Building params:')
-    console.log(util.inspect(tokens, false, null, true))
-
     //Go Into Complex Function Calls
     for(let i = 0; i < tokens.length; i++){
         const token = tokens[i]
@@ -350,19 +347,9 @@ function buildParamsSingle(tokens){
                                 }
                             }
 
-                            console.log('Entering at: ' + j.toString())
-                            console.log(util.inspect(tokens, false, null, true))
-
                             let parsed = buildParamsSingle(tokens.slice(j - 1, endIndex + 1))[0]
 
                             tokens.splice(j - 1, endIndex - j + 2, parsed)
-
-                            console.log('Returned:')
-                            console.log(util.inspect(parsed, false, null, true))
-                            console.log('Now:')
-                            console.log(util.inspect(tokens, false, null, true))
-
-                            sleep(5000)
                         }
                     }
                 }
@@ -374,9 +361,6 @@ function buildParamsSingle(tokens){
 
             for(let u = i + 1; u < tokens.length; u++){
                 const otherOtherToken = tokens[u]
-
-                console.log('Looking For End')
-                console.log(otherOtherToken)
 
                 if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
                     opensFound++
@@ -397,23 +381,12 @@ function buildParamsSingle(tokens){
             let groups = []
             let lastGroupPos = i
 
-            console.log(endIndex)
-            console.log(opensFound)
-
             for(let k = i; k < endIndex; k++){
                 const goalToken = tokens[k]
-
-                console.log('Splitting')
-                console.log(token)
 
                 if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
                     let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))
                     groups.push(group)
-
-                    console.log('Added: ')
-                    console.log(util.inspect(tokens.slice(lastGroupPos + 1, k), false, null, true))
-                    console.log('Now: ')
-                    console.log(util.inspect(group, false, null, true))
 
                     lastGroupPos = k
                 }
@@ -422,27 +395,11 @@ function buildParamsSingle(tokens){
             let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))
             groups.push(group)
 
-            console.log('Added: ')
-            console.log(util.inspect(tokens.slice(lastGroupPos + 1, endIndex), false, null, true))
-            console.log('Now: ')
-            console.log(util.inspect(group, false, null, true))
-
-            console.log('Groups:')
-            console.log(util.inspect(groups, false, null, true))
-
             groups.unshift(prevToken)
 
-            console.log('Before Replaced: ')
-            console.log(util.inspect(tokens, false, null, true))
-
             tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'Call' })
-
-            console.log('Replaced: ')
-            console.log(util.inspect(tokens, false, null, true))
         }
     }
-
-    sleep(5000)
 
     return tokens
 }

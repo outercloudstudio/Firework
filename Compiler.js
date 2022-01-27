@@ -318,6 +318,9 @@ function buildParamsSingle(tokens){
             const prevToken = tokens[i - 1]
 
             if(prevToken && prevToken.token == 'NAME'){
+                console.log('Prev Token: ')
+                console.log(prevToken)
+
                 for(let j = i + 1; j < tokens.length; j++){
                     const otherToken = tokens[j]
 
@@ -325,6 +328,9 @@ function buildParamsSingle(tokens){
                         const otherPrevToken = tokens[j - 1]
 
                         if(otherPrevToken && otherPrevToken.token == 'NAME'){
+                            console.log('Other Prev Token: ')
+                            console.log(otherPrevToken)
+
                             let opensFound = 0
 
                             let endIndex = -1
@@ -353,51 +359,51 @@ function buildParamsSingle(tokens){
                         }
                     }
                 }
-            }
 
-            let opensFound = 0
+                let opensFound = 0
 
-            let endIndex = -1
+                let endIndex = -1
 
-            for(let u = i + 1; u < tokens.length; u++){
-                const otherOtherToken = tokens[u]
+                for(let u = i + 1; u < tokens.length; u++){
+                    const otherOtherToken = tokens[u]
 
-                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
-                    opensFound++
-                }
+                    if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
+                        opensFound++
+                    }
 
-                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == ')'){
-                    if(opensFound == 0){
-                        endIndex = u
+                    if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == ')'){
+                        if(opensFound == 0){
+                            endIndex = u
 
-                        break
-                    }else{
-                        opensFound--
+                            break
+                        }else{
+                            opensFound--
+                        }
                     }
                 }
-            }
 
-            //Build Expressions Between Commas
-            let groups = []
-            let lastGroupPos = i
+                //Build Expressions Between Commas
+                let groups = []
+                let lastGroupPos = i
 
-            for(let k = i; k < endIndex; k++){
-                const goalToken = tokens[k]
+                for(let k = i; k < endIndex; k++){
+                    const goalToken = tokens[k]
 
-                if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
-                    let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))
-                    groups.push(group)
+                    if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
+                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))
+                        groups.push(group)
 
-                    lastGroupPos = k
+                        lastGroupPos = k
+                    }
                 }
+
+                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))
+                groups.push(group)
+
+                groups.unshift(prevToken)
+
+                tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'Call' })
             }
-
-            let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))
-            groups.push(group)
-
-            groups.unshift(prevToken)
-
-            tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'Call' })
         }
     }
 

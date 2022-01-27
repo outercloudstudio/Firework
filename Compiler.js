@@ -185,6 +185,24 @@ function buildCompoundTypes(tokens){
     return tokens
 }
 
+function buildExpressions(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        //Go Deeper Into Blocks
+        for(let i = 0; i < tokens[l].length; i++){
+            if(tokens[l][i].token == 'BLOCK'){
+                tokens[l][i].value = buildExpressions(tokens[l][i].value)
+            }
+        }
+
+        //Build Expression
+        for(let i = 0; i < tokens[l].length; i++){
+            tokens[l] = buildExpressionsSingle(tokens[l])
+        }
+    }
+
+    return tokens
+}
+
 function buildExpressionsSingle(tokens){
     //Create Parantheses Groups
     for(let i = 0; i < tokens.length; i++){
@@ -250,8 +268,13 @@ function buildExpressionsSingle(tokens){
     for(let i = 0; i < tokens.length; i++){
         const token = tokens[i]
 
+        //console.log('NOT:')
+        //console.log(token)
+
         if(token.token == 'SYMBOL' && token.value == '!'){
             let nextToken = tokens[i + 1]
+
+            //console.log(nextToken)
 
             if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG')){
                 tokens.splice(i, 2, { value: [token, nextToken], token: 'EXPRESSION' })
@@ -318,7 +341,7 @@ function buildExpressionsSingle(tokens){
         }
     }
 
-    return tokens[0]
+    return tokens
 }
 
 function buildParamsSingle(tokens){
@@ -396,14 +419,14 @@ function buildParamsSingle(tokens){
                     const goalToken = tokens[k]
 
                     if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
-                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))
+                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k)[0])
                         groups.push(group)
 
                         lastGroupPos = k
                     }
                 }
 
-                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))
+                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex)[0])
                 groups.push(group)
 
                 groups.unshift(prevToken)
@@ -440,21 +463,67 @@ function buildAsignments(tokens){
             }
         }
 
-        //Build Empty Function Calls
+        //Build Asignments
         for(let i = 0; i < tokens[l].length; i++){
             const token = tokens[l][i]
             const nextToken = tokens[l][i + 1]
             const nextNextToken = tokens[l][i + 2]
             const nextNextNextToken = tokens[l][i + 3]
 
+            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG')){
+                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASIGN' })
+            }
+        }
+    }
+
+    return tokens
+}
+
+function buildIfAndDelay(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        //Go Deeper Into Blocks
+        for(let i = 0; i < tokens[l].length; i++){
+            if(tokens[l][i].token == 'BLOCK'){
+                tokens[l][i].value = buildIfAndDelay(tokens[l][i].value)
+            }
+        }
+
+        //Build Ifs And Delays
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+            const nextNextNextToken = tokens[l][i + 3]
+            const nextNextNextNextToken = tokens[l][i + 4]
+
             console.log(token)
             console.log(nextToken)
             console.log(nextNextToken)
             console.log(nextNextNextToken)
+            console.log(nextNextNextNextToken)
             console.log('')
 
-            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG')){
-                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASIGN' })
+            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'BLOCK'){
+                tokens[l].splice(i, 5, { value: [token, nextNextToken, nextNextNextToken], token: 'IF' })
+            }
+        }
+
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+            const nextNextNextToken = tokens[l][i + 3]
+            const nextNextNextNextToken = tokens[l][i + 4]
+
+            console.log(token)
+            console.log(nextToken)
+            console.log(nextNextToken)
+            console.log(nextNextNextToken)
+            console.log(nextNextNextNextToken)
+            console.log('')
+
+            if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'INTEGER' || nextNextToken.token == 'NAME' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'BLOCK'){
+                tokens[l].splice(i, 5, { value: [token, nextNextToken, nextNextNextToken], token: 'DELAY' })
             }
         }
     }
@@ -478,7 +547,11 @@ function generateETree(tokens){
 
     tokens = buildParams(tokens)
 
+    tokens = buildExpressions(tokens)
+
     tokens = buildAsignments(tokens)
+
+    //tokens = buildIfAndDelay(tokens)
 
     return tokens
 }

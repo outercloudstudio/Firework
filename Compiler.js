@@ -158,6 +158,18 @@ function buildCompoundTypes(tokens){
             }
         }
 
+        //Build Molang
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const prevToken = tokens[l][i - 1]
+
+            if(token.token == 'STRING' && prevToken && prevToken.token == 'SYMBOL' && prevToken.value == '?'){
+                tokens[l].splice(i - 1, 2, { value: token.value, token: 'MOLANG' })
+
+                i--
+            }
+        }
+
         //Build Empty Function Calls
         for(let i = 0; i < tokens[l].length; i++){
             const token = tokens[l][i]
@@ -165,7 +177,7 @@ function buildCompoundTypes(tokens){
             const nextNextToken = tokens[l][i + 2]
 
             if(token.token == 'NAME' && nextToken && nextToken.value == '(' && nextNextToken && nextNextToken.value == ')'){
-                tokens[l].splice(i, 3, { value: [token.value], token: 'CALL' })
+                tokens[l].splice(i, 3, { value: [token], token: 'CALL' })
             }
         }
     }
@@ -318,9 +330,6 @@ function buildParamsSingle(tokens){
             const prevToken = tokens[i - 1]
 
             if(prevToken && prevToken.token == 'NAME'){
-                console.log('Prev Token: ')
-                console.log(prevToken)
-
                 for(let j = i + 1; j < tokens.length; j++){
                     const otherToken = tokens[j]
 
@@ -328,9 +337,6 @@ function buildParamsSingle(tokens){
                         const otherPrevToken = tokens[j - 1]
 
                         if(otherPrevToken && otherPrevToken.token == 'NAME'){
-                            console.log('Other Prev Token: ')
-                            console.log(otherPrevToken)
-
                             let opensFound = 0
 
                             let endIndex = -1
@@ -425,6 +431,37 @@ function buildParams(tokens){
     return tokens
 }
 
+function buildAsignments(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        //Go Deeper Into Blocks
+        for(let i = 0; i < tokens[l].length; i++){
+            if(tokens[l][i].token == 'BLOCK'){
+                tokens[l][i].value = buildAsignments(tokens[l][i].value)
+            }
+        }
+
+        //Build Empty Function Calls
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+            const nextNextNextToken = tokens[l][i + 3]
+
+            console.log(token)
+            console.log(nextToken)
+            console.log(nextNextToken)
+            console.log(nextNextNextToken)
+            console.log('')
+
+            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG')){
+                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASIGN' })
+            }
+        }
+    }
+
+    return tokens
+}
+
 function generateETree(tokens){
     tokens = splitLines(tokens)
     
@@ -440,6 +477,8 @@ function generateETree(tokens){
     tokens = buildCompoundTypes(tokens)
 
     tokens = buildParams(tokens)
+
+    tokens = buildAsignments(tokens)
 
     return tokens
 }

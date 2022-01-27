@@ -15,9 +15,9 @@
 ## 5. Build Expressions and Function Params and Calls ✔️
   Compiler.js creates expressions from symbols such as `+ - * / ^ && || ! == != > < <= >=` along with any ones grouped in parantheses into an `EXPRESSION` and function calls.
 
-## 6. Build Asignments ⚠️
+## 6. Build Asignments ✔️
 
-## 7. Build Delays / Ifs
+## 7. Build Delays / Ifs ⚠️
 
 ## 8. Build Functions
 

@@ -510,14 +510,6 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
-            console.log(token)
-            console.log(nextToken)
-            console.log(nextNextToken)
-            console.log(nextNextNextToken)
-            console.log(nextNextNextNextToken)
-            console.log(nextNextNextNextNextToken)
-            console.log('')
-
             if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
                 tokens[l].splice(i, 6, { value: [nextNextToken, nextNextNextNextNextToken], token: 'IF' })
             }
@@ -530,14 +522,6 @@ function buildIfAndDelay(tokens){
             const nextNextNextToken = tokens[l][i + 3]
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
-
-            console.log(token)
-            console.log(nextToken)
-            console.log(nextNextToken)
-            console.log(nextNextNextToken)
-            console.log(nextNextNextNextToken)
-            console.log(nextNextNextNextNextToken)
-            console.log('')
 
             if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'INTEGER' || nextNextToken.token == 'NAME' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
                 tokens[l].splice(i, 6, { value: [nextNextToken, nextNextNextNextNextToken], token: 'DELAY' })
@@ -569,6 +553,8 @@ function generateETree(tokens){
     tokens = buildAsignments(tokens)
 
     tokens = buildIfAndDelay(tokens)
+
+    //tokens = removeEmpties(tokens)
 
     return tokens
 }

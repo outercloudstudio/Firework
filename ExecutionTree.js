@@ -78,14 +78,13 @@ function buildCodeBlocks(tokens){
 
                 if(tokens[x].length == 0){
                     tokens.splice(x, 1)
-                    x--
                 }
 
                 if(x - openPath.x > 1){
                     tokens.splice(openPath.x + 1, x - openPath.x - 1)
                 }
 
-                x -= x - openPath.x - 1
+                x = openPath.x
             }
         }
     }
@@ -248,7 +247,9 @@ function buildExpressionsSingle(tokens){
 
                 let insideTokens = tokens.slice(i + 1, endingIndex)
 
-                tokens.splice(i, endingIndex - i + 1, { value: buildParamsSingle(insideTokens), token: 'EXPRESSION' })
+                const paramOut = buildParamsSingle(insideTokens)
+
+                tokens.splice(i, endingIndex - i + 1, buildExpressionsSingle(paramOut)[0])
 
                 i--
             }
@@ -299,7 +300,7 @@ function buildExpressionsSingle(tokens){
 
             //console.log(nextToken)
 
-            if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG')){
+            if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG' || nextToken.token == 'BOOLEAN')){
                 tokens.splice(i, 2, { value: [token, nextToken], token: 'EXPRESSION' })
             }
         }
@@ -350,14 +351,14 @@ function buildExpressionsSingle(tokens){
         const token = tokens[i]
         const nextToken = tokens[i + 1]
 
-        if(token.token == 'SYMBOL' && nextToken && nextToken.token == 'SYMBOL' && ((token.value == '|' && nextToken.value == '|') || (token.value == '&' && nextToken.value == '&'))){
+        if(token.token == 'SYMBOL' && nextToken && nextToken.token == 'SYMBOL' && ((token.value == '|' && nextToken.value == '|') || (token.value == '&' && nextToken.value == '&'))){    
             let nextNextToken = tokens[i + 2]
             let prevToken = tokens[i - 1]
 
-            if(prevToken && nextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION')){
+            if(prevToken && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN')){
                 const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
                 
-                tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+                tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION'})
 
                 i--
             }
@@ -442,20 +443,20 @@ function buildParamsSingle(tokens){
                     const goalToken = tokens[k]
 
                     if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
-                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k)[0])
+                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))[0]
                         groups.push(group)
 
                         lastGroupPos = k
                     }
                 }
 
-                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex)[0])
+                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))[0]
 
                 groups.push(group)
 
                 groups.unshift(prevToken)
 
-                tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'Call' })
+                tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'CALL' })
             }
         }
     }
@@ -487,7 +488,7 @@ function buildAsignments(tokens){
             const nextNextToken = tokens[l][i + 2]
             const nextNextNextToken = tokens[l][i + 3]
 
-            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG')){
+            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG' || nextNextNextToken.token == 'EXPRESSION')){
                 tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASIGN' })
             }
         }
@@ -569,6 +570,10 @@ function generateETree(tokens){
     tokens = buildIfAndDelay(tokens)
 
     tokens = buildFunctions(tokens)
+
+    for(let l = 0; l < tokens.length; l++){
+        tokens[l] = tokens[l][0]
+    }
 
     return tokens
 }

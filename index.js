@@ -2,12 +2,13 @@ const util = require('util')
 const fs = require('fs')
 
 const Tokenizer = require('./Tokenizer')
-const Compiler = require('./Compiler')
+const ExecutionTree = require('./ExecutionTree')
+const ContextTree = require('./ContextTree')
 
-const tokens = Tokenizer.tokenize(fs.readFileSync('./World.frw').toString())
+const tokens = Tokenizer.tokenize(fs.readFileSync('./Context.frw').toString())
 
-//console.log(util.inspect(tokens, false, null, true /* enable colors */))
+const ETree = ExecutionTree.generateETree(tokens)
 
-const ETree = Compiler.generateETree(tokens)
+//const CTree = ContextTree.buildContextTree(ETree)
 
 console.log(util.inspect(ETree, false, null, true /* enable colors */))

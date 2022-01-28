@@ -21,6 +21,10 @@
 
 ## 8. Build Functions ✔️
 
+## 9. Build Context Tree ⚠️
+
+## 10. Do Structure Check
+
 ## Example
   We will break down how this code is compiled:
   ```

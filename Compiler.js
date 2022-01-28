@@ -76,6 +76,11 @@ function buildCodeBlocks(tokens){
 
                 tokens[x].splice(0, y + 1)
 
+                if(tokens[x].length == 0){
+                    tokens.splice(x, 1)
+                    x--
+                }
+
                 if(x - openPath.x > 1){
                     tokens.splice(openPath.x + 1, x - openPath.x - 1)
                 }
@@ -128,6 +133,12 @@ function buildCompoundTypes(tokens){
                 tokens[l].splice(i, 1)
 
                 i--
+            }
+
+            if(tokens[l].length == 0){
+                tokens.splice(l, 1)
+
+                l--
             }
         }
 
@@ -537,13 +548,6 @@ function generateETree(tokens){
     
     tokens = buildCodeBlocks(tokens)
 
-    for(let i = 0; i < tokens.length; i++){
-        if(tokens[i].length == 0){
-            tokens.splice(i, 1)
-            i--
-        }
-    }
-
     tokens = buildCompoundTypes(tokens)
 
     tokens = buildParams(tokens)
@@ -553,8 +557,6 @@ function generateETree(tokens){
     tokens = buildAsignments(tokens)
 
     tokens = buildIfAndDelay(tokens)
-
-    //tokens = removeEmpties(tokens)
 
     return tokens
 }

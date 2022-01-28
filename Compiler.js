@@ -187,7 +187,7 @@ function buildCompoundTypes(tokens){
             const prevToken = tokens[l][i - 1]
 
             if(token.token == 'SYMBOL' && token.value == '>' && prevToken && prevToken.token == 'SYMBOL' && prevToken.value == '='){
-                tokens[l].splice(i - 1, 2, { value: token.value, token: 'ARROW' })
+                tokens[l].splice(i - 1, 2, { value: '=>', token: 'ARROW' })
 
                 i--
             }
@@ -480,13 +480,6 @@ function buildParams(tokens){
 
 function buildAsignments(tokens){
     for(let l = 0; l < tokens.length; l++){
-        //Go Deeper Into Blocks
-        for(let i = 0; i < tokens[l].length; i++){
-            if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildAsignments(tokens[l][i].value)
-            }
-        }
-
         //Build Asignments
         for(let i = 0; i < tokens[l].length; i++){
             const token = tokens[l][i]
@@ -543,6 +536,23 @@ function buildIfAndDelay(tokens){
     return tokens
 }
 
+function buildFunctions(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+            const nextNextNextToken = tokens[l][i + 3]
+
+            if(token.token == 'KEYWORD' && token.value == 'func' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'ARROW' && nextNextNextToken && nextNextNextToken.token == 'BLOCK'){
+                tokens[l].splice(i, 6, { value: [nextToken, nextNextNextToken], token: 'DEFINTION' })
+            }
+        }
+    }
+
+    return tokens
+}
+
 function generateETree(tokens){
     tokens = splitLines(tokens)
     
@@ -557,6 +567,8 @@ function generateETree(tokens){
     tokens = buildAsignments(tokens)
 
     tokens = buildIfAndDelay(tokens)
+
+    tokens = buildFunctions(tokens)
 
     return tokens
 }

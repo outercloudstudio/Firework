@@ -19,7 +19,7 @@
 
 ## 7. Build Delays / Ifs ✔️
 
-## 8. Build Functions ⚠️
+## 8. Build Functions ✔️
 
 ## Example
   We will break down how this code is compiled:
@@ -34,3 +34,5 @@
     }
   }
   ```
+
+⚠️

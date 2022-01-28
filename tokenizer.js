@@ -58,7 +58,8 @@ const symbols = [
 const keywords = [
     'if',
     'const',
-    'dyn'
+    'dyn',
+    'func'
 ]
 
 function tokenize(input) {

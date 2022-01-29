@@ -1,0 +1,14 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.firework.runtime.c727259a-9894-4f35-bfb6-ce8db8ffbfc1": {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    "/setblock ~ ~3 ~ deepslate_diamond_ore"
+                ]
+            },
+            "animation_length": 0.001
+        }
+    }
+}

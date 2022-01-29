@@ -7,6 +7,12 @@ const Firework = require('./Firework')
 function compile(tree){
     fs.copyFileSync('./world_runtime_template.json', './world_runtime.json')
 
+    if(fs.existsSync('./animations')){
+        fs.rmSync('./animations', { recursive: true })
+    }
+
+    fs.mkdirSync('./animations')
+
     let worldRuntime = JSON.parse(fs.readFileSync('./world_runtime.json').toString())
 
     let blocks = {}
@@ -258,9 +264,36 @@ function compile(tree){
         }
 
         worldRuntime['minecraft:entity'].description.properties['frw:' + dynamicValueNames[i]] = data
+
+        let animCont = {
+            "format_version": "1.10.0",
+            "animations": {}
+        }
+
+        animCont.animations['animation.firework.runtime.' + dynamicValueNames[i]] = {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    "/setblock ~ ~3 ~ deepslate_diamond_ore"
+                ]
+            },
+            "animation_length": 0.001
+        }
+
+        fs.writeFileSync('./animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
+
+        worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i]] = 'animation.firework.runtime.' + dynamicValueNames[i]
+
+        let animData = {}
+
+        animData[dynamicValueNames[i]] = dynamicValues[dynamicValueNames[i]].condition
+
+        worldRuntime['minecraft:entity'].description.scripts.animate.push(animData)
     }
 
     const blockNames = Object.getOwnPropertyNames(blocks)
+
+    console.log(util.inspect(blocks, false, null, true))
 
     for(let i = 0; i < blockNames.length; i++){
         let data = {
@@ -278,16 +311,16 @@ function compile(tree){
                         }
                     })
                 }
-            }else if(blocks[blockNames[i]][l].token == 'BLOCKREF'){
-                if(blocks[blockNames[i]][l].value[1] == 'normal'){
+            }else if(blocks[blockNames[i]][l].token == 'DEFINITION' || blocks[blockNames[i]][l].token == 'IF' || blocks[blockNames[i]][l].token == 'DELAY'){
+                if(blocks[blockNames[i]][l].value[1].value[1] == 'normal'){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                'event entity @s frw:' + blocks[blockNames[i]][l].value[0]
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
-                }else if(blocks[blockNames[i]][l].value[1] == 'conditional'){
+                }else if(blocks[blockNames[i]][l].value[1].value[1] == 'conditional'){
                     data.sequence.push({
                         filters: {
 							test: 'has_tag',
@@ -295,15 +328,15 @@ function compile(tree){
 						},
                         run_command: {
                             command: [
-                                `event entity @s[tag=$frw_conditional_${blocks[blockNames[i]][l].value[0]}] frw:` + blocks[blockNames[i]][l].value[0]
+                                `event entity @s[tag=$frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
-                }else if(blocks[blockNames[i]][l].value[1] == 'delay'){
+                }else if(blocks[blockNames[i]][l].value[1].value[1] == 'delay'){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                'event entity @s frw:' + blocks[blockNames[i]][l].value[0]
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
@@ -313,8 +346,6 @@ function compile(tree){
 
         worldRuntime['minecraft:entity'].events['frw:' + blockNames[i]] = data
     }
-
-    console.log(util.inspect(dynamicValues, false, null, true))
 
     fs.writeFileSync('./world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }

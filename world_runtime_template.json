@@ -6,7 +6,11 @@
 			"is_spawnable": true,
 			"is_summonable": true,
 			"is_experimental": false,
-			"properties": {}
+			"properties": {},
+			"animations": {},
+			"scripts": {
+				"animate": []
+			}
 		},
 		"component_groups": {},
 		"components": {},

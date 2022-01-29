@@ -2,24 +2,34 @@
     "format_version": "1.18.10",
     "minecraft:entity": {
         "description": {
-            "identifier": "innovation:world_runtime",
+            "identifier": "frw:world_runtime",
             "is_spawnable": true,
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:46b3a295-9455-4efa-9c2b-4b7f9b9aac85": {
+                "frw:c727259a-9894-4f35-bfb6-ce8db8ffbfc1": {
                     "default": 0,
                     "values": [
                         0,
                         1
                     ]
                 }
+            },
+            "animations": {
+                "c727259a-9894-4f35-bfb6-ce8db8ffbfc1": "animation.firework.runtime.c727259a-9894-4f35-bfb6-ce8db8ffbfc1"
+            },
+            "scripts": {
+                "animate": [
+                    {
+                        "c727259a-9894-4f35-bfb6-ce8db8ffbfc1": "q.actor_property('frw:kill') == 0"
+                    }
+                ]
             }
         },
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:a34eddf4-4384-46f7-a492-6eb8091db25d": {
+            "frw:f0a45d09-7639-4bb3-a446-e792745f4a1d": {
                 "sequence": [
                     {
                         "run_command": {
@@ -30,11 +40,31 @@
                     }
                 ]
             },
-            "frw:46b3a295-9455-4efa-9c2b-4b7f9b9aac85": {
-                "sequence": []
+            "frw:c727259a-9894-4f35-bfb6-ce8db8ffbfc1": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "event entity @s frw:f0a45d09-7639-4bb3-a446-e792745f4a1d"
+                            ]
+                        }
+                    }
+                ]
             },
             "frw:die": {
-                "sequence": []
+                "sequence": [
+                    {
+                        "filters": {
+                            "test": "has_tag",
+                            "value": "exanmple_condition"
+                        },
+                        "run_command": {
+                            "command": [
+                                "event entity @s[tag=$frw_conditional_c727259a-9894-4f35-bfb6-ce8db8ffbfc1] frw:c727259a-9894-4f35-bfb6-ce8db8ffbfc1"
+                            ]
+                        }
+                    }
+                ]
             }
         }
     }

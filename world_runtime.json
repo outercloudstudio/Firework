@@ -10,7 +10,7 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:706dfc86-06fe-46e4-99d3-c5f3c5bfc045": {
+            "frw:910af6ed-67be-4f01-bc5f-e4e4d70de3ff": {
                 "sequence": [
                     {
                         "run_command": {
@@ -21,23 +21,27 @@
                     }
                 ]
             },
-            "frw:32f38391-25d6-4c2a-a822-0060e14882ed": {
+            "frw:b17b995e-9d90-42b7-b348-fd0ce01a0c2f": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "event entity @s frw:706dfc86-06fe-46e4-99d3-c5f3c5bfc045"
+                                "event entity @s frw:910af6ed-67be-4f01-bc5f-e4e4d70de3ff"
                             ]
                         }
                     }
                 ]
             },
-            "frw:9f86c6c7-b9be-451f-86d2-2347e34639b8": {
+            "frw:932db2ec-9ce6-45a3-bd67-e2613b5f6067": {
                 "sequence": [
                     {
+                        "filters": {
+                            "test": "has_tag",
+                            "value": "exanmple_condition"
+                        },
                         "run_command": {
                             "command": [
-                                "event entity @s frw:32f38391-25d6-4c2a-a822-0060e14882ed"
+                                "event entity @s frw:b17b995e-9d90-42b7-b348-fd0ce01a0c2f"
                             ]
                         }
                     }

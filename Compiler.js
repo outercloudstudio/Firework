@@ -14,7 +14,7 @@ function compile(tree){
 
     let constants = {}
 
-    function indexCodeBlock(block, preferedID = null){
+    function indexCodeBlock(block, mode, preferedID = null){
         for(let i = 0; i < block.value.length; i++){
             block.value[i] = searchForCodeBlock(block.value[i])
         }
@@ -27,16 +27,18 @@ function compile(tree){
 
         blocks[ID] = block.value
 
-        block = { value: ID, token: 'BLOCKREF'}
+        block = { value: [ID, mode], token: 'BLOCKREF'}
 
         return block
     }
 
     function searchForCodeBlock(tree){
-        if(tree.token == 'BLOCK'){
-            tree = indexCodeBlock(tree)
-        }else if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
-            tree = indexCodeBlock(tree.value[1])
+        if(tree.token == 'DEFINITION'){
+            tree = indexCodeBlock(tree.value[1], 'normal')
+        }else if(tree.token == 'IF'){
+            tree = indexCodeBlock(tree.value[1], 'conditional')
+        }else if(tree.token == 'DELAY'){
+            tree = indexCodeBlock(tree.value[1], 'delay')
         }
 
         return tree
@@ -56,7 +58,6 @@ function compile(tree){
         }
 
         for(let l = 0; l < blocks[blockNames[i]].length; l++){
-            console.log(blocks[blockNames[i]][l])
             if(blocks[blockNames[i]][l].token == 'CALL'){
                 if(blocks[blockNames[i]][l].value[0].value == 'rc'){
                     data.sequence.push({
@@ -68,13 +69,35 @@ function compile(tree){
                     })
                 }
             }else if(blocks[blockNames[i]][l].token == 'BLOCKREF'){
-                data.sequence.push({
-                    run_command: {
-                        command: [
-                            'event entity @s frw:' + blocks[blockNames[i]][l].value
-                        ]
-                    }
-                })
+                if(blocks[blockNames[i]][l].value[1] == 'normal'){
+                    data.sequence.push({
+                        run_command: {
+                            command: [
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[0]
+                            ]
+                        }
+                    })
+                }else if(blocks[blockNames[i]][l].value[1] == 'conditional'){
+                    data.sequence.push({
+                        filters: {
+							test: 'has_tag',
+							value: 'exanmple_condition'
+						},
+                        run_command: {
+                            command: [
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[0]
+                            ]
+                        }
+                    })
+                }else if(blocks[blockNames[i]][l].value[1] == 'delay'){
+                    data.sequence.push({
+                        run_command: {
+                            command: [
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[0]
+                            ]
+                        }
+                    })
+                }
             }
         }
 

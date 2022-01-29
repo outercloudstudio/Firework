@@ -516,6 +516,10 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
             if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+                for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
+                    nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
+                }
+                
                 tokens[l].splice(i, 6, { value: [nextNextToken, nextNextNextNextNextToken], token: 'IF' })
             }
         }
@@ -529,6 +533,10 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
             if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'INTEGER' || nextNextToken.token == 'NAME' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+                for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
+                    nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
+                }
+                
                 tokens[l].splice(i, 6, { value: [nextNextToken, nextNextNextNextNextToken], token: 'DELAY' })
             }
         }
@@ -546,7 +554,11 @@ function buildFunctions(tokens){
             const nextNextNextToken = tokens[l][i + 3]
 
             if(token.token == 'KEYWORD' && token.value == 'func' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'ARROW' && nextNextNextToken && nextNextNextToken.token == 'BLOCK'){
-                tokens[l].splice(i, 6, { value: [nextToken, nextNextNextToken], token: 'DEFINTION' })
+                for(let j = 0; j <  nextNextNextToken.value.length; j++){
+                    nextNextNextToken.value[j] = nextNextNextToken.value[j][0]
+                }
+                
+                tokens[l].splice(i, 6, { value: [nextToken, nextNextNextToken], token: 'DEFINITION' })
             }
         }
     }

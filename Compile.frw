@@ -1,1 +1,1 @@
-const add = 1 + 1 == 2 && 2 * 5 > 9 || $debug
+const add = 1 + 1 == 2 && 2 * 5 > 9

@@ -292,13 +292,8 @@ function buildExpressionsSingle(tokens){
     for(let i = 0; i < tokens.length; i++){
         const token = tokens[i]
 
-        //console.log('NOT:')
-        //console.log(token)
-
         if(token.token == 'SYMBOL' && token.value == '!'){
             let nextToken = tokens[i + 1]
-
-            //console.log(nextToken)
 
             if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG' || nextToken.token == 'BOOLEAN')){
                 tokens.splice(i, 2, { value: [token, nextToken], token: 'EXPRESSION' })
@@ -489,7 +484,7 @@ function buildAsignments(tokens){
             const nextNextNextToken = tokens[l][i + 3]
 
             if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG' || nextNextNextToken.token == 'EXPRESSION')){
-                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASSIGN' })
+                tokens[l].splice(i, 4, { value: [token, nextToken, nextNextNextToken], token: 'ASSIGN' })
             }
         }
     }

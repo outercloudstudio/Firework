@@ -15,12 +15,7 @@ function compile(tree){
 
     let constants = {}
 
-    console.log(util.inspect(tree, false, null, true))
-
     function optomizeExpression(expression){
-        console.log('OPTOMIZE EXP')
-        console.log(util.inspect(expression, false, null, true))
-
         let dynamic = false
 
         if(expression.value[0].value == '+' || expression.value[0].value == '-' || expression.value == '*'[0].value || expression.value == '/'[0].value || expression.value[0].value == '&&' || expression.value[0].value == '||' || expression.value[0].value == '==' || expression.value[0].value == '>' || expression.value[0].value == '<' || expression.value[0].value == '>=' || expression.value[0].value == '<='){
@@ -52,9 +47,6 @@ function compile(tree){
                 dynamic = true
             }
         }
-
-        console.log('OPT EXP RET:')
-        console.log(util.inspect(expression, false, null, true))
 
         if(dynamic){
             expression.dynamic = true
@@ -145,16 +137,10 @@ function compile(tree){
             }
         }
 
-        
-        console.log(util.inspect(expression, false, null, true))
-
         return expression
     }
 
     function searchForExpression(tree){
-        console.log('SEARCH EXP')
-        console.log(util.inspect(tree, false, null, true))
-
         if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
             tree = searchForExpression(tree.value[1].value)
         }else if(tree.token == 'ASSIGN' && tree.value[0].value == 'const'){
@@ -171,7 +157,6 @@ function compile(tree){
 
         return tree
     }
-
 
     function indexCodeBlock(block, mode, preferedID = null){
         for(let i = 0; i < block.value.length; i++){
@@ -207,7 +192,23 @@ function compile(tree){
         tree[i] = searchForExpression(tree[i])
     }
 
-    console.log(util.inspect(tree, false, null, true))
+    for(let i = 0; i < tree.length; i++){
+        if(tree[i].token == 'ASSIGN'){
+            if(tree[i].value[0].value == 'const'){
+                if(tree[i].value[2].token == 'EXPRESSION' || tree[i].value[2].dynamic){
+                    console.log(`Can not assign dyncamic value to const ${tree[i].value[1].value}!`)
+                    return new Firework.Error(`Can not assign dyncamic value to const ${tree[i].value[1].value}!`)
+                }
+
+                if(constants[tree[i].value[1].value]){
+                    console.log(`Can not initialize constant ${tree[i].value[1].value} more than once!`)
+                    return new Firework.Error(`Can not initialize constant ${tree[i].value[1].value} more than once!`)
+                }
+
+                constants[tree[i].value[1].value] = tree[i].value[2]
+            }
+        }
+    }
 
     for(let i = 0; i < tree.length; i++){
         tree[i] = searchForCodeBlock(tree[i])

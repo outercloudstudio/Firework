@@ -1,14 +1,41 @@
 {
-    "format_version": "1.16.0",
+    "format_version": "1.18.10",
     "minecraft:entity": {
         "description": {
             "identifier": "innovation:world_runtime",
             "is_spawnable": true,
             "is_summonable": true,
-            "is_experimental": false
+            "is_experimental": false,
+            "properties": {
+                "frw:46b3a295-9455-4efa-9c2b-4b7f9b9aac85": {
+                    "default": 0,
+                    "values": [
+                        0,
+                        1
+                    ]
+                }
+            }
         },
         "component_groups": {},
         "components": {},
-        "events": {}
+        "events": {
+            "frw:a34eddf4-4384-46f7-a492-6eb8091db25d": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "kill @a"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:46b3a295-9455-4efa-9c2b-4b7f9b9aac85": {
+                "sequence": []
+            },
+            "frw:die": {
+                "sequence": []
+            }
+        }
     }
 }

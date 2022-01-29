@@ -13,18 +13,38 @@ function compile(tree){
 
     let dynamicVariables = {}
 
+    let dynamicValues = {}
+
     let constants = {}
 
-    function optomizeExpression(expression){
+    function expressionToMolang(expression){
+        let result = ''
+
+        if(expression.token == 'INTEGER' || expression.token == 'BOOLEAN'){
+            result += expression.value
+        }else if(expression.token == 'EXPRESSION'){
+            if(expression.value[0].value == '!'){
+                result += expressionToMolang(expression.value[1]) + ' == 0'
+            }else{
+                result += expressionToMolang(expression.value[1]) + ' ' + expression.value[0].value + ' ' + expressionToMolang(expression.value[2])
+            }
+        }else if(expression.token == 'FLAG'){
+            result = `q.actor_property('frw:${expression.value}')`
+        }
+
+        return result
+    }
+
+    function optimizeExpression(expression){
         let dynamic = false
 
         if(expression.value[0].value == '+' || expression.value[0].value == '-' || expression.value == '*'[0].value || expression.value == '/'[0].value || expression.value[0].value == '&&' || expression.value[0].value == '||' || expression.value[0].value == '==' || expression.value[0].value == '>' || expression.value[0].value == '<' || expression.value[0].value == '>=' || expression.value[0].value == '<='){
             if(expression.value[1].token == 'EXPRESSION'){
-                expression.value[1] = optomizeExpression(expression.value[1])
+                expression.value[1] = optimizeExpression(expression.value[1])
             }
 
             if(expression.value[2].token == 'EXPRESSION'){
-                expression.value[2] = optomizeExpression(expression.value[2])
+                expression.value[2] = optimizeExpression(expression.value[2])
             }
             
             if(expression.value[1].dynamic || expression.value[2].dynamic){
@@ -36,7 +56,7 @@ function compile(tree){
             }
         }else if(expression.value[0].value == '!'){
             if(expression.value[1].token == 'EXPRESSION'){
-                expression.value[1] = optomizeExpression(expression.value[1])
+                expression.value[1] = optimizeExpression(expression.value[1])
             }
 
             if(expression.value[1].dynamic){
@@ -142,15 +162,15 @@ function compile(tree){
 
     function searchForExpression(tree){
         if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
-            tree = searchForExpression(tree.value[1].value)
+            tree.value[1].value = searchForExpression(tree.value[1].value)
         }else if(tree.token == 'ASSIGN' && tree.value[0].value == 'const'){
             if(tree.value[2].token == 'EXPRESSION'){
-                tree.value[2] = optomizeExpression(tree.value[2])
+                tree.value[2] = optimizeExpression(tree.value[2])
             }
         }else if(tree.token == 'CALL'){
             for(let i = 1; i < tree.value.length; i++){
                 if(tree.value[i].token == 'EXPRESSION'){
-                    tree.value[i] = optomizeExpression(tree.value[i])
+                    tree.value[i] = optimizeExpression(tree.value[i])
                 }
             }
         }
@@ -158,7 +178,7 @@ function compile(tree){
         return tree
     }
 
-    function indexCodeBlock(block, mode, preferedID = null){
+    function indexCodeBlock(block, mode, condition = null, preferedID = null){
         for(let i = 0; i < block.value.length; i++){
             block.value[i] = searchForCodeBlock(block.value[i])
         }
@@ -169,6 +189,14 @@ function compile(tree){
             ID = preferedID
         }
 
+        if(mode == 'conditional'){
+            let molang = expressionToMolang(condition)
+
+            dynamicValues[ID] = {
+                condition: molang
+            }
+        }
+
         blocks[ID] = block.value
 
         block = { value: [ID, mode], token: 'BLOCKREF'}
@@ -176,13 +204,27 @@ function compile(tree){
         return block
     }
 
+    function indexConstant(token){
+        if(token.value[2].token == 'EXPRESSION' || token.value[2].dynamic){
+            console.log(`Can not assign dyncamic value to const ${token.value[1].value}!`)
+            return new Firework.Error(`Can not assign dyncamic value to const ${token.value[1].value}!`)
+        }
+
+        if(constants[token.value[1].value]){
+            console.log(`Can not initialize constant ${token.value[1].value} more than once!`)
+            return new Firework.Error(`Can not initialize constant ${token.value[1].value} more than once!`)
+        }
+
+        constants[token.value[1].value] = token.value[2]
+    }
+
     function searchForCodeBlock(tree){
         if(tree.token == 'DEFINITION'){
-            tree = indexCodeBlock(tree.value[1], 'normal')
+            tree.value[1] = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
         }else if(tree.token == 'IF'){
-            tree = indexCodeBlock(tree.value[1], 'conditional')
+            tree.value[1] = indexCodeBlock(tree.value[1], 'conditional', tree.value[0])
         }else if(tree.token == 'DELAY'){
-            tree = indexCodeBlock(tree.value[1], 'delay')
+            tree.value[1] = indexCodeBlock(tree.value[1], 'delay')
         }
 
         return tree
@@ -195,23 +237,27 @@ function compile(tree){
     for(let i = 0; i < tree.length; i++){
         if(tree[i].token == 'ASSIGN'){
             if(tree[i].value[0].value == 'const'){
-                if(tree[i].value[2].token == 'EXPRESSION' || tree[i].value[2].dynamic){
-                    console.log(`Can not assign dyncamic value to const ${tree[i].value[1].value}!`)
-                    return new Firework.Error(`Can not assign dyncamic value to const ${tree[i].value[1].value}!`)
-                }
-
-                if(constants[tree[i].value[1].value]){
-                    console.log(`Can not initialize constant ${tree[i].value[1].value} more than once!`)
-                    return new Firework.Error(`Can not initialize constant ${tree[i].value[1].value} more than once!`)
-                }
-
-                constants[tree[i].value[1].value] = tree[i].value[2]
+                indexConstant(tree[i])
             }
         }
     }
 
     for(let i = 0; i < tree.length; i++){
         tree[i] = searchForCodeBlock(tree[i])
+    }
+
+    const dynamicValueNames = Object.getOwnPropertyNames(dynamicValues)
+
+    for(let i = 0; i < dynamicValueNames.length; i++){
+        let data = {
+            default: 0,
+            values: [
+                0,
+                1
+            ]
+        }
+
+        worldRuntime['minecraft:entity'].description.properties['frw:' + dynamicValueNames[i]] = data
     }
 
     const blockNames = Object.getOwnPropertyNames(blocks)
@@ -249,7 +295,7 @@ function compile(tree){
 						},
                         run_command: {
                             command: [
-                                'event entity @s frw:' + blocks[blockNames[i]][l].value[0]
+                                `event entity @s[tag=$frw_conditional_${blocks[blockNames[i]][l].value[0]}] frw:` + blocks[blockNames[i]][l].value[0]
                             ]
                         }
                     })
@@ -267,6 +313,8 @@ function compile(tree){
 
         worldRuntime['minecraft:entity'].events['frw:' + blockNames[i]] = data
     }
+
+    console.log(util.inspect(dynamicValues, false, null, true))
 
     fs.writeFileSync('./world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }

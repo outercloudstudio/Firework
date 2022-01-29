@@ -1,11 +1,12 @@
 {
-	"format_version": "1.16.0",
+	"format_version": "1.18.10",
 	"minecraft:entity": {
 		"description": {
-			"identifier": "innovation:world_runtime",
+			"identifier": "frw:world_runtime",
 			"is_spawnable": true,
 			"is_summonable": true,
-			"is_experimental": false
+			"is_experimental": false,
+			"properties": {}
 		},
 		"component_groups": {},
 		"components": {},

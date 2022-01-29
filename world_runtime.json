@@ -10,12 +10,34 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:tele": {
+            "frw:706dfc86-06fe-46e4-99d3-c5f3c5bfc045": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "tp @a ~ ~500 ~"
+                                "kill @a"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:32f38391-25d6-4c2a-a822-0060e14882ed": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "event entity @s frw:706dfc86-06fe-46e4-99d3-c5f3c5bfc045"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:9f86c6c7-b9be-451f-86d2-2347e34639b8": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "event entity @s frw:32f38391-25d6-4c2a-a822-0060e14882ed"
                             ]
                         }
                     }

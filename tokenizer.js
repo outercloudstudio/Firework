@@ -59,7 +59,8 @@ const keywords = [
     'if',
     'const',
     'dyn',
-    'func'
+    'func',
+    'delay'
 ]
 
 function tokenize(input) {

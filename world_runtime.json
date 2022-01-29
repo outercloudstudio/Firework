@@ -9,44 +9,6 @@
         },
         "component_groups": {},
         "components": {},
-        "events": {
-            "frw:910af6ed-67be-4f01-bc5f-e4e4d70de3ff": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "kill @a"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:b17b995e-9d90-42b7-b348-fd0ce01a0c2f": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "event entity @s frw:910af6ed-67be-4f01-bc5f-e4e4d70de3ff"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:932db2ec-9ce6-45a3-bd67-e2613b5f6067": {
-                "sequence": [
-                    {
-                        "filters": {
-                            "test": "has_tag",
-                            "value": "exanmple_condition"
-                        },
-                        "run_command": {
-                            "command": [
-                                "event entity @s frw:b17b995e-9d90-42b7-b348-fd0ce01a0c2f"
-                            ]
-                        }
-                    }
-                ]
-            }
-        }
+        "events": {}
     }
 }

@@ -337,7 +337,7 @@ function buildExpressionsSingle(tokens){
                     }
                 }else if(token.value == '>' || token.value == '<'){
                     if((nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                        tokens.splice(i - 1, 4, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
+                        tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
 
                         i--
                     }
@@ -489,7 +489,7 @@ function buildAsignments(tokens){
             const nextNextNextToken = tokens[l][i + 3]
 
             if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG' || nextNextNextToken.token == 'EXPRESSION')){
-                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASIGN' })
+                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASSIGN' })
             }
         }
     }

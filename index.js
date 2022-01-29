@@ -9,6 +9,6 @@ const tokens = Tokenizer.tokenize(fs.readFileSync('./Context.frw').toString())
 
 const ETree = ExecutionTree.generateETree(tokens)
 
-//const CTree = ContextTree.buildContextTree(ETree)
+const CTree = ContextTree.buildContextTree(ETree)
 
-console.log(util.inspect(ETree, false, null, true /* enable colors */))
+console.log(util.inspect(CTree, false, null, true /* enable colors */))

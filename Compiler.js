@@ -310,6 +310,16 @@ function compile(tree){
                             ]
                         }
                     })
+                }else{
+                    if(blocks[blocks[blockNames[i]][l].value[0].value]){
+                        data.sequence.push({
+                            run_command: {
+                                command: [
+                                    `event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
+                                ]
+                            }
+                        })
+                    }
                 }
             }else if(blocks[blockNames[i]][l].token == 'DEFINITION' || blocks[blockNames[i]][l].token == 'IF' || blocks[blockNames[i]][l].token == 'DELAY'){
                 if(blocks[blockNames[i]][l].value[1].value[1] == 'normal'){

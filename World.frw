@@ -1,9 +1,9 @@
-dyn running = ?"q.is_running"
-
 func die => {
   if(!$kill) => {
-    delay(1) => {
-      rc("kill @a")
-    }
+    rc("kill @a")
   }
+}
+
+func start => {
+  die()
 }

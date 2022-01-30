@@ -7,7 +7,7 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:c727259a-9894-4f35-bfb6-ce8db8ffbfc1": {
+                "frw:48fc8b3b-35d1-4071-b08d-815e8260b559": {
                     "default": 0,
                     "values": [
                         0,
@@ -16,12 +16,12 @@
                 }
             },
             "animations": {
-                "c727259a-9894-4f35-bfb6-ce8db8ffbfc1": "animation.firework.runtime.c727259a-9894-4f35-bfb6-ce8db8ffbfc1"
+                "48fc8b3b-35d1-4071-b08d-815e8260b559": "animation.firework.runtime.48fc8b3b-35d1-4071-b08d-815e8260b559"
             },
             "scripts": {
                 "animate": [
                     {
-                        "c727259a-9894-4f35-bfb6-ce8db8ffbfc1": "q.actor_property('frw:kill') == 0"
+                        "48fc8b3b-35d1-4071-b08d-815e8260b559": "q.actor_property('frw:kill') == 0"
                     }
                 ]
             }
@@ -29,23 +29,12 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:f0a45d09-7639-4bb3-a446-e792745f4a1d": {
+            "frw:48fc8b3b-35d1-4071-b08d-815e8260b559": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
                                 "kill @a"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:c727259a-9894-4f35-bfb6-ce8db8ffbfc1": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "event entity @s frw:f0a45d09-7639-4bb3-a446-e792745f4a1d"
                             ]
                         }
                     }
@@ -60,11 +49,14 @@
                         },
                         "run_command": {
                             "command": [
-                                "event entity @s[tag=$frw_conditional_c727259a-9894-4f35-bfb6-ce8db8ffbfc1] frw:c727259a-9894-4f35-bfb6-ce8db8ffbfc1"
+                                "event entity @s[tag=$frw_conditional_48fc8b3b-35d1-4071-b08d-815e8260b559] frw:48fc8b3b-35d1-4071-b08d-815e8260b559"
                             ]
                         }
                     }
                 ]
+            },
+            "frw:start": {
+                "sequence": []
             }
         }
     }

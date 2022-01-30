@@ -1,8 +1,8 @@
 # Implemented Features
 ## Constants ✔️
-## Tags ⚠️
+## Tags ✔️
 - Reading ✔️
-- Setting ⚠️
+- Setting ✔️
 ## Functions ✔️
 - Defining ✔️
 - Calling ✔️

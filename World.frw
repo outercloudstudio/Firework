@@ -6,6 +6,7 @@ func die => {
 
 func start => {
   die()
+  $kill = true
 }
 
 func update => {

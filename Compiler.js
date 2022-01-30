@@ -293,8 +293,6 @@ function compile(tree){
 
     const blockNames = Object.getOwnPropertyNames(blocks)
 
-    console.log(util.inspect(blocks, false, null, true))
-
     for(let i = 0; i < blockNames.length; i++){
         let data = {
             sequence: []

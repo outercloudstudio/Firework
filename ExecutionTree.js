@@ -561,12 +561,42 @@ function buildFunctions(tokens){
     return tokens
 }
 
+function buildFlagAssignments(tokens){
+    for(let l = 0; l < tokens.length; l++){
+        //Go Deeper Into Blocks
+        for(let i = 0; i < tokens[l].length; i++){
+            if(tokens[l][i].token == 'BLOCK'){
+                tokens[l][i].value = buildFlagAssignments(tokens[l][i].value)
+            }
+        }
+
+        //Build Flag Asignments
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+
+            if(token.token == 'FLAG' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '=' && nextNextToken && nextNextToken.token == 'BOOLEAN'){
+                tokens[l].splice(i, 3, { value: [token, nextNextToken], token: 'ASSIGN' })
+            }
+        }
+    }
+
+    return tokens
+}
+
 function generateETree(tokens){
     tokens = splitLines(tokens)
     
     tokens = buildCodeBlocks(tokens)
 
     tokens = buildCompoundTypes(tokens)
+
+    console.log(util.inspect(tokens, false, null, true))
+
+    tokens = buildFlagAssignments(tokens)
+
+    console.log(util.inspect(tokens, false, null, true))
 
     tokens = buildParams(tokens)
 

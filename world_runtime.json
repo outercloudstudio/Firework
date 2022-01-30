@@ -7,7 +7,7 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:94356f86-0b9d-46c1-be03-e96c0116ad3b": {
+                "frw:2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": {
                     "default": 0,
                     "values": [
                         0,
@@ -16,14 +16,14 @@
                 }
             },
             "animations": {
-                "94356f86-0b9d-46c1-be03-e96c0116ad3b": "animation.firework.runtime.94356f86-0b9d-46c1-be03-e96c0116ad3b",
-                "frw_update": "animation.firework.runtime.2b3e0752-2160-485e-b602-cd2fd34aaf24.update"
+                "2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": "animation.firework.runtime.2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3",
+                "frw_update": "animation.firework.runtime.6ce7ebc0-10f6-4238-8898-bd049bbcec87.update"
             },
             "scripts": {
                 "animate": [
                     "update",
                     {
-                        "94356f86-0b9d-46c1-be03-e96c0116ad3b": "q.actor_property('frw:kill') == 0"
+                        "2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": "q.actor_property('frw:kill') == 0"
                     }
                 ]
             }
@@ -56,7 +56,7 @@
                     }
                 ]
             },
-            "frw:94356f86-0b9d-46c1-be03-e96c0116ad3b": {
+            "frw:2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": {
                 "sequence": [
                     {
                         "run_command": {
@@ -70,13 +70,9 @@
             "frw:die": {
                 "sequence": [
                     {
-                        "filters": {
-                            "test": "has_tag",
-                            "value": "exanmple_condition"
-                        },
                         "run_command": {
                             "command": [
-                                "event entity @s[tag=$frw_conditional_94356f86-0b9d-46c1-be03-e96c0116ad3b] frw:94356f86-0b9d-46c1-be03-e96c0116ad3b"
+                                "event entity @s[tag=$frw_conditional_2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3] frw:2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3"
                             ]
                         }
                     }

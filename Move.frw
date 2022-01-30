@@ -1,10 +1,14 @@
 func update => {
   if($right) => {
-    rc("tp ~1 ~ ~")
+    rc("setblock ~ ~2 ~ air")
+    rc("tp ~0.05 ~ ~")
+    rc("setblock ~ ~2 ~ deepslate_diamond_ore")
   }
 
   if($left) => {
-    rc("tp ~-1 ~ ~")
+    rc("setblock ~ ~2 ~ air")
+    rc("tp ~-0.05 ~ ~")
+    rc("setblock ~ ~2 ~ deepslate_diamond_ore")
   }
 
   rc("setblock ~ ~2 ~ deepslate_diamond_ore")

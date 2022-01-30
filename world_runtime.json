@@ -21,14 +21,14 @@
                         1
                     ]
                 },
-                "frw:7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": {
+                "frw:db25575b-ac1c-48fa-b2ca-2ea17c1e5d41": {
                     "default": 0,
                     "values": [
                         0,
                         1
                     ]
                 },
-                "frw:80fd6e1c-6eaf-49f9-8bec-d062514a0db0": {
+                "frw:10238766-37ff-489e-967f-6c05f3667368": {
                     "default": 0,
                     "values": [
                         0,
@@ -37,26 +37,26 @@
                 }
             },
             "animations": {
-                "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": "animation.firework.runtime.7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8",
-                "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8_inverse": "animation.firework.runtime.7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8.inverse",
-                "80fd6e1c-6eaf-49f9-8bec-d062514a0db0": "animation.firework.runtime.80fd6e1c-6eaf-49f9-8bec-d062514a0db0",
-                "80fd6e1c-6eaf-49f9-8bec-d062514a0db0_inverse": "animation.firework.runtime.80fd6e1c-6eaf-49f9-8bec-d062514a0db0.inverse",
-                "frw_update": "animation.firework.runtime.02a18e4e-6bec-47ad-9a6e-9182a12571ee.update"
+                "db25575b-ac1c-48fa-b2ca-2ea17c1e5d41": "animation.firework.runtime.db25575b-ac1c-48fa-b2ca-2ea17c1e5d41",
+                "db25575b-ac1c-48fa-b2ca-2ea17c1e5d41_inverse": "animation.firework.runtime.db25575b-ac1c-48fa-b2ca-2ea17c1e5d41.inverse",
+                "10238766-37ff-489e-967f-6c05f3667368": "animation.firework.runtime.10238766-37ff-489e-967f-6c05f3667368",
+                "10238766-37ff-489e-967f-6c05f3667368_inverse": "animation.firework.runtime.10238766-37ff-489e-967f-6c05f3667368.inverse",
+                "frw_update": "animation.firework.runtime.39dfde1b-86bd-4616-9264-09511adcc6af.update"
             },
             "scripts": {
                 "animate": [
                     "frw_update",
                     {
-                        "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": "q.actor_property('frw:right')"
+                        "db25575b-ac1c-48fa-b2ca-2ea17c1e5d41": "q.actor_property('frw:right')"
                     },
                     {
-                        "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8_inverse": "(q.actor_property('frw:right')) == 0"
+                        "db25575b-ac1c-48fa-b2ca-2ea17c1e5d41_inverse": "(q.actor_property('frw:right')) == 0"
                     },
                     {
-                        "80fd6e1c-6eaf-49f9-8bec-d062514a0db0": "q.actor_property('frw:left')"
+                        "10238766-37ff-489e-967f-6c05f3667368": "q.actor_property('frw:left')"
                     },
                     {
-                        "80fd6e1c-6eaf-49f9-8bec-d062514a0db0_inverse": "(q.actor_property('frw:left')) == 0"
+                        "10238766-37ff-489e-967f-6c05f3667368_inverse": "(q.actor_property('frw:left')) == 0"
                     }
                 ]
             }
@@ -70,14 +70,14 @@
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8] frw:7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8"
+                                "/event entity @s[tag=frw_conditional_db25575b-ac1c-48fa-b2ca-2ea17c1e5d41] frw:db25575b-ac1c-48fa-b2ca-2ea17c1e5d41"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_80fd6e1c-6eaf-49f9-8bec-d062514a0db0] frw:80fd6e1c-6eaf-49f9-8bec-d062514a0db0"
+                                "/event entity @s[tag=frw_conditional_10238766-37ff-489e-967f-6c05f3667368] frw:10238766-37ff-489e-967f-6c05f3667368"
                             ]
                         }
                     },
@@ -110,23 +110,51 @@
                     "frw:left": 0
                 }
             },
-            "frw:7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": {
+            "frw:db25575b-ac1c-48fa-b2ca-2ea17c1e5d41": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/tp ~1 ~ ~"
+                                "/setblock ~ ~2 ~ air"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/tp ~0.05 ~ ~"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/setblock ~ ~2 ~ deepslate_diamond_ore"
                             ]
                         }
                     }
                 ]
             },
-            "frw:80fd6e1c-6eaf-49f9-8bec-d062514a0db0": {
+            "frw:10238766-37ff-489e-967f-6c05f3667368": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/tp ~-1 ~ ~"
+                                "/setblock ~ ~2 ~ air"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/tp ~-0.05 ~ ~"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/setblock ~ ~2 ~ deepslate_diamond_ore"
                             ]
                         }
                     }

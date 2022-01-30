@@ -1,0 +1,14 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.firework.runtime.10238766-37ff-489e-967f-6c05f3667368": {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    "/tag @s add frw_conditional_10238766-37ff-489e-967f-6c05f3667368"
+                ]
+            },
+            "animation_length": 0.001
+        }
+    }
+}

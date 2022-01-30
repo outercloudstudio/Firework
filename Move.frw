@@ -1,13 +1,15 @@
-func start => {
-  rc("say start")
-  rc("setblock ~ ~5 ~ stone")
-  $kill = true
-}
-
 func update => {
-  if($kill) => {
-    rc("setblock ~ ~3 ~ log")
+  if($right) => {
+    rc("setblock ~ ~2 ~ air")
+    rc("tp ~0.05 ~ ~")
+    rc("setblock ~ ~2 ~ deepslate_diamond_ore")
   }
 
-  rc("setblock ~ ~4 ~ glowstone")
+  if($left) => {
+    rc("setblock ~ ~2 ~ air")
+    rc("tp ~-0.05 ~ ~")
+    rc("setblock ~ ~2 ~ deepslate_diamond_ore")
+  }
+
+  rc("setblock ~ ~2 ~ deepslate_diamond_ore")
 }

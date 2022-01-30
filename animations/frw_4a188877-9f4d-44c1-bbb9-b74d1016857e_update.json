@@ -1,11 +1,11 @@
 {
     "format_version": "1.10.0",
     "animations": {
-        "animation.firework.runtime.2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": {
+        "animation.firework.runtime.4a188877-9f4d-44c1-bbb9-b74d1016857e.update": {
             "loop": true,
             "timeline": {
                 "0.0": [
-                    "/setblock ~ ~3 ~ deepslate_diamond_ore"
+                    "/event entity @s frw:update"
                 ]
             },
             "animation_length": 0.001

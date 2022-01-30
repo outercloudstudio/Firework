@@ -10,16 +10,13 @@
 			"animations": {},
 			"scripts": {
 				"animate": [
-					"update"
+					"frw_update"
 				]
 			}
 		},
 		"component_groups": {},
 		"components": {},
 		"events": {
-			"minecraft:entity_spawned": {
-				"trigger": "frw:start"
-			},
 			"frw:start": {
 
 			},

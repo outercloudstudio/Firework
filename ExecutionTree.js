@@ -592,11 +592,7 @@ function generateETree(tokens){
 
     tokens = buildCompoundTypes(tokens)
 
-    console.log(util.inspect(tokens, false, null, true))
-
     tokens = buildFlagAssignments(tokens)
-
-    console.log(util.inspect(tokens, false, null, true))
 
     tokens = buildParams(tokens)
 

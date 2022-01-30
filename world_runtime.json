@@ -7,7 +7,14 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": {
+                "frw:kill": {
+                    "default": 0,
+                    "values": [
+                        0,
+                        1
+                    ]
+                },
+                "frw:029d4699-1bd5-4947-9846-73446d8712d9": {
                     "default": 0,
                     "values": [
                         0,
@@ -16,14 +23,18 @@
                 }
             },
             "animations": {
-                "2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": "animation.firework.runtime.2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3",
-                "frw_update": "animation.firework.runtime.6ce7ebc0-10f6-4238-8898-bd049bbcec87.update"
+                "029d4699-1bd5-4947-9846-73446d8712d9": "animation.firework.runtime.029d4699-1bd5-4947-9846-73446d8712d9",
+                "029d4699-1bd5-4947-9846-73446d8712d9_inverse": "animation.firework.runtime.029d4699-1bd5-4947-9846-73446d8712d9.inverse",
+                "frw_update": "animation.firework.runtime.4a188877-9f4d-44c1-bbb9-b74d1016857e.update"
             },
             "scripts": {
                 "animate": [
-                    "update",
+                    "frw_update",
                     {
-                        "2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": "q.actor_property('frw:kill') == 0"
+                        "029d4699-1bd5-4947-9846-73446d8712d9": "q.actor_property('frw:kill')"
+                    },
+                    {
+                        "029d4699-1bd5-4947-9846-73446d8712d9_inverse": "(q.actor_property('frw:kill')) == 0"
                     }
                 ]
             }
@@ -31,15 +42,26 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "minecraft:entity_spawned": {
-                "trigger": "frw:start"
-            },
             "frw:start": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "event entity @s frw:die"
+                                "/say start"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/setblock ~ ~5 ~ stone"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/event entity @s frw:set_kill"
                             ]
                         }
                     }
@@ -50,29 +72,35 @@
                     {
                         "run_command": {
                             "command": [
-                                "setblock ~ ~4 ~ glowstone"
+                                "/event entity @s[tag=frw_conditional_029d4699-1bd5-4947-9846-73446d8712d9] frw:029d4699-1bd5-4947-9846-73446d8712d9"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/setblock ~ ~4 ~ glowstone"
                             ]
                         }
                     }
                 ]
             },
-            "frw:2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "kill @a"
-                            ]
-                        }
-                    }
-                ]
+            "frw:set_kill": {
+                "set_actor_property": {
+                    "frw:kill": 1
+                }
             },
-            "frw:die": {
+            "frw:unset_kill": {
+                "set_actor_property": {
+                    "frw:kill": 0
+                }
+            },
+            "frw:029d4699-1bd5-4947-9846-73446d8712d9": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "event entity @s[tag=$frw_conditional_2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3] frw:2ae31e54-2ad3-4e3f-a7d9-17ec4ae3e0a3"
+                                "/setblock ~ ~3 ~ log"
                             ]
                         }
                     }

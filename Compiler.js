@@ -23,6 +23,8 @@ function compile(tree){
 
     let constants = {}
 
+    let flags = []
+
     function expressionToMolang(expression){
         let result = ''
 
@@ -236,6 +238,39 @@ function compile(tree){
         return tree
     }
 
+    function searchForCodeBlock(tree){
+        if(tree.token == 'DEFINITION'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
+        }else if(tree.token == 'IF'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'conditional', tree.value[0])
+        }else if(tree.token == 'DELAY'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'delay')
+        }
+
+        return tree
+    }
+
+    function indexFlag(flag){
+        flags.push(flag.value)
+    }
+
+    function searchForFlags(tree){
+        if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
+
+            if(tree.value[0].token == 'EXPRESSION'){
+                tree.value[0] = searchForFlags(tree.value[0])
+            }
+
+            for(let i = 0; i < tree.value[1].value.length; i++){
+                tree.value[1].value[i] = searchForFlags(tree.value[1].value[i])
+            }
+        }else if(tree.token == 'ASSIGN' && tree.value[0].token == 'FLAG'){
+            indexFlag(tree.value[0])
+        }
+
+        return tree
+    }
+
     for(let i = 0; i < tree.length; i++){
         tree[i] = searchForExpression(tree[i])
     }
@@ -249,7 +284,39 @@ function compile(tree){
     }
 
     for(let i = 0; i < tree.length; i++){
+        tree[i] = searchForFlags(tree[i])
+    }
+
+    for(let i = 0; i < tree.length; i++){
         tree[i] = searchForCodeBlock(tree[i])
+    }
+
+    for(let i = 0; i < flags.length; i++){
+        let data = {
+            default: 0,
+            values: [
+                0,
+                1
+            ]
+        }
+
+        worldRuntime['minecraft:entity'].description.properties['frw:' + flags[i]] = data
+
+        let eventData = {
+            set_actor_property: {}
+        }
+        
+        eventData.set_actor_property['frw:' + flags[i]] = 1
+
+        worldRuntime['minecraft:entity'].events['frw:set_' + flags[i]] = eventData
+
+        eventData = {
+            set_actor_property: {}
+        }
+        
+        eventData.set_actor_property['frw:' + flags[i]] = 0
+
+        worldRuntime['minecraft:entity'].events['frw:unset_' + flags[i]] = eventData
     }
 
     const dynamicValueNames = Object.getOwnPropertyNames(dynamicValues)
@@ -274,7 +341,7 @@ function compile(tree){
             "loop": true,
             "timeline": {
                 "0.0": [
-                    "/setblock ~ ~3 ~ deepslate_diamond_ore"
+                    `/tag @s add frw_conditional_${dynamicValueNames[i]}`
                 ]
             },
             "animation_length": 0.001
@@ -289,6 +356,31 @@ function compile(tree){
         animData[dynamicValueNames[i]] = dynamicValues[dynamicValueNames[i]].condition
 
         worldRuntime['minecraft:entity'].description.scripts.animate.push(animData)
+
+        animCont = {
+            "format_version": "1.10.0",
+            "animations": {}
+        }
+
+        animCont.animations['animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'] = {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    `/tag @s remove frw_conditional_${dynamicValueNames[i]}`
+                ]
+            },
+            "animation_length": 0.001
+        }
+
+        fs.writeFileSync('./animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
+
+        worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i] + '_inverse'] = 'animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'
+
+        animData = {}
+
+        animData[dynamicValueNames[i] + '_inverse'] = '(' + dynamicValues[dynamicValueNames[i]].condition + ') == 0'
+
+        worldRuntime['minecraft:entity'].description.scripts.animate.push(animData)
     }
 
     const blockNames = Object.getOwnPropertyNames(blocks)
@@ -299,12 +391,15 @@ function compile(tree){
         }
 
         for(let l = 0; l < blocks[blockNames[i]].length; l++){
+            console.log('BUILDING ' + blockNames[i] + ' ' + l)
+            console.log(blocks[blockNames[i]][l].token)
+
             if(blocks[blockNames[i]][l].token == 'CALL'){
                 if(blocks[blockNames[i]][l].value[0].value == 'rc'){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                blocks[blockNames[i]][l].value[1].value
+                                '/' + blocks[blockNames[i]][l].value[1].value
                             ]
                         }
                     })
@@ -313,7 +408,7 @@ function compile(tree){
                         data.sequence.push({
                             run_command: {
                                 command: [
-                                    `event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
+                                    `/event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
                                 ]
                             }
                         })
@@ -324,7 +419,7 @@ function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                'event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
+                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
@@ -332,7 +427,7 @@ function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                `event entity @s[tag=$frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
+                                `/event entity @s[tag=frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
@@ -340,10 +435,32 @@ function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                'event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
+                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
+                }
+            }else if(blocks[blockNames[i]][l].token == 'ASSIGN'){
+                if(blocks[blockNames[i]][l].value[1].value == 'true'){
+                    data.sequence.push(
+                        {
+                            run_command: {
+                                command: [
+                                    `/event entity @s frw:set_${blocks[blockNames[i]][l].value[0].value}`
+                                ]
+                            }
+                        }
+                    )
+                }else{
+                    data.sequence.push(
+                        {
+                            run_command: {
+                                command: [
+                                    `/event entity @s frw:unset_${blocks[blockNames[i]][l].value[0].value}`
+                                ]
+                            }
+                        }
+                    )
                 }
             }
         }

@@ -7,7 +7,7 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:48fc8b3b-35d1-4071-b08d-815e8260b559": {
+                "frw:94356f86-0b9d-46c1-be03-e96c0116ad3b": {
                     "default": 0,
                     "values": [
                         0,
@@ -16,12 +16,14 @@
                 }
             },
             "animations": {
-                "48fc8b3b-35d1-4071-b08d-815e8260b559": "animation.firework.runtime.48fc8b3b-35d1-4071-b08d-815e8260b559"
+                "94356f86-0b9d-46c1-be03-e96c0116ad3b": "animation.firework.runtime.94356f86-0b9d-46c1-be03-e96c0116ad3b",
+                "frw_update": "animation.firework.runtime.2b3e0752-2160-485e-b602-cd2fd34aaf24.update"
             },
             "scripts": {
                 "animate": [
+                    "update",
                     {
-                        "48fc8b3b-35d1-4071-b08d-815e8260b559": "q.actor_property('frw:kill') == 0"
+                        "94356f86-0b9d-46c1-be03-e96c0116ad3b": "q.actor_property('frw:kill') == 0"
                     }
                 ]
             }
@@ -29,7 +31,32 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:48fc8b3b-35d1-4071-b08d-815e8260b559": {
+            "minecraft:entity_spawned": {
+                "trigger": "frw:start"
+            },
+            "frw:start": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "event entity @s frw:die"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:update": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "setblock ~ ~4 ~ glowstone"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:94356f86-0b9d-46c1-be03-e96c0116ad3b": {
                 "sequence": [
                     {
                         "run_command": {
@@ -49,14 +76,11 @@
                         },
                         "run_command": {
                             "command": [
-                                "event entity @s[tag=$frw_conditional_48fc8b3b-35d1-4071-b08d-815e8260b559] frw:48fc8b3b-35d1-4071-b08d-815e8260b559"
+                                "event entity @s[tag=$frw_conditional_94356f86-0b9d-46c1-be03-e96c0116ad3b] frw:94356f86-0b9d-46c1-be03-e96c0116ad3b"
                             ]
                         }
                     }
                 ]
-            },
-            "frw:start": {
-                "sequence": []
             }
         }
     }

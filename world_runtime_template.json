@@ -9,11 +9,23 @@
 			"properties": {},
 			"animations": {},
 			"scripts": {
-				"animate": []
+				"animate": [
+					"update"
+				]
 			}
 		},
 		"component_groups": {},
 		"components": {},
-		"events": {}
+		"events": {
+			"minecraft:entity_spawned": {
+				"trigger": "frw:start"
+			},
+			"frw:start": {
+
+			},
+			"frw:update": {
+
+			}
+		}
 	}
 }

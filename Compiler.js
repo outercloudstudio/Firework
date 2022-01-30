@@ -332,10 +332,6 @@ function compile(tree){
                     })
                 }else if(blocks[blockNames[i]][l].value[1].value[1] == 'conditional'){
                     data.sequence.push({
-                        filters: {
-							test: 'has_tag',
-							value: 'exanmple_condition'
-						},
                         run_command: {
                             command: [
                                 `event entity @s[tag=$frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
@@ -356,6 +352,27 @@ function compile(tree){
 
         worldRuntime['minecraft:entity'].events['frw:' + blockNames[i]] = data
     }
+
+    let updateData = {
+        "format_version": "1.10.0",
+        "animations": {}
+    }
+
+    const updateID = uuidv4()
+
+    updateData.animations['animation.firework.runtime.' + updateID + '.update'] = {
+        "loop": true,
+        "timeline": {
+            "0.0": [
+                `/event entity @s frw:update`
+            ]
+        },
+        "animation_length": 0.001
+    }
+
+    fs.writeFileSync('./animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
+
+    worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
 
     fs.writeFileSync('./world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }

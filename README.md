@@ -6,7 +6,7 @@
 ## Functions ✔️
 - Defining ✔️
 - Calling ✔️
-## Start and Update Functions ⚠️
+## Start and Update Functions ✔️
 ## If Statements ✔️
 ## Delays ➡️
 

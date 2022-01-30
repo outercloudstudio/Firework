@@ -7,3 +7,7 @@ func die => {
 func start => {
   die()
 }
+
+func update => {
+  rc("setblock ~ ~4 ~ glowstone")
+}

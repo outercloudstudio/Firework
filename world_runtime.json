@@ -7,14 +7,28 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:kill": {
+                "frw:right": {
                     "default": 0,
                     "values": [
                         0,
                         1
                     ]
                 },
-                "frw:029d4699-1bd5-4947-9846-73446d8712d9": {
+                "frw:left": {
+                    "default": 0,
+                    "values": [
+                        0,
+                        1
+                    ]
+                },
+                "frw:7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": {
+                    "default": 0,
+                    "values": [
+                        0,
+                        1
+                    ]
+                },
+                "frw:80fd6e1c-6eaf-49f9-8bec-d062514a0db0": {
                     "default": 0,
                     "values": [
                         0,
@@ -23,18 +37,26 @@
                 }
             },
             "animations": {
-                "029d4699-1bd5-4947-9846-73446d8712d9": "animation.firework.runtime.029d4699-1bd5-4947-9846-73446d8712d9",
-                "029d4699-1bd5-4947-9846-73446d8712d9_inverse": "animation.firework.runtime.029d4699-1bd5-4947-9846-73446d8712d9.inverse",
-                "frw_update": "animation.firework.runtime.4a188877-9f4d-44c1-bbb9-b74d1016857e.update"
+                "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": "animation.firework.runtime.7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8",
+                "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8_inverse": "animation.firework.runtime.7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8.inverse",
+                "80fd6e1c-6eaf-49f9-8bec-d062514a0db0": "animation.firework.runtime.80fd6e1c-6eaf-49f9-8bec-d062514a0db0",
+                "80fd6e1c-6eaf-49f9-8bec-d062514a0db0_inverse": "animation.firework.runtime.80fd6e1c-6eaf-49f9-8bec-d062514a0db0.inverse",
+                "frw_update": "animation.firework.runtime.02a18e4e-6bec-47ad-9a6e-9182a12571ee.update"
             },
             "scripts": {
                 "animate": [
                     "frw_update",
                     {
-                        "029d4699-1bd5-4947-9846-73446d8712d9": "q.actor_property('frw:kill')"
+                        "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": "q.actor_property('frw:right')"
                     },
                     {
-                        "029d4699-1bd5-4947-9846-73446d8712d9_inverse": "(q.actor_property('frw:kill')) == 0"
+                        "7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8_inverse": "(q.actor_property('frw:right')) == 0"
+                    },
+                    {
+                        "80fd6e1c-6eaf-49f9-8bec-d062514a0db0": "q.actor_property('frw:left')"
+                    },
+                    {
+                        "80fd6e1c-6eaf-49f9-8bec-d062514a0db0_inverse": "(q.actor_property('frw:left')) == 0"
                     }
                 ]
             }
@@ -42,65 +64,69 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:start": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/say start"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/setblock ~ ~5 ~ stone"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s frw:set_kill"
-                            ]
-                        }
-                    }
-                ]
-            },
+            "frw:start": {},
             "frw:update": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_029d4699-1bd5-4947-9846-73446d8712d9] frw:029d4699-1bd5-4947-9846-73446d8712d9"
+                                "/event entity @s[tag=frw_conditional_7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8] frw:7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/setblock ~ ~4 ~ glowstone"
+                                "/event entity @s[tag=frw_conditional_80fd6e1c-6eaf-49f9-8bec-d062514a0db0] frw:80fd6e1c-6eaf-49f9-8bec-d062514a0db0"
+                            ]
+                        }
+                    },
+                    {
+                        "run_command": {
+                            "command": [
+                                "/setblock ~ ~2 ~ deepslate_diamond_ore"
                             ]
                         }
                     }
                 ]
             },
-            "frw:set_kill": {
+            "frw:set_right": {
                 "set_actor_property": {
-                    "frw:kill": 1
+                    "frw:right": 1
                 }
             },
-            "frw:unset_kill": {
+            "frw:unset_right": {
                 "set_actor_property": {
-                    "frw:kill": 0
+                    "frw:right": 0
                 }
             },
-            "frw:029d4699-1bd5-4947-9846-73446d8712d9": {
+            "frw:set_left": {
+                "set_actor_property": {
+                    "frw:left": 1
+                }
+            },
+            "frw:unset_left": {
+                "set_actor_property": {
+                    "frw:left": 0
+                }
+            },
+            "frw:7f0e3f2e-340b-48c7-9fed-00d36fd6f4d8": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/setblock ~ ~3 ~ log"
+                                "/tp ~1 ~ ~"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:80fd6e1c-6eaf-49f9-8bec-d062514a0db0": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "/tp ~-1 ~ ~"
                             ]
                         }
                     }

@@ -5,7 +5,7 @@ const Tokenizer = require('./Tokenizer')
 const ExecutionTree = require('./ExecutionTree')
 const Compiler = require('./Compiler')
 
-const tokens = Tokenizer.tokenize(fs.readFileSync('./World.frw').toString())
+const tokens = Tokenizer.tokenize(fs.readFileSync('./Move.frw').toString())
 
 const ETree = ExecutionTree.generateETree(tokens)
 

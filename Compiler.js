@@ -251,6 +251,8 @@ function compile(tree){
     }
 
     function indexFlag(flag){
+        console.log('INDEXED FLAG' + flag.value)
+
         flags.push(flag.value)
     }
 
@@ -259,6 +261,8 @@ function compile(tree){
 
             if(tree.value[0].token == 'EXPRESSION'){
                 tree.value[0] = searchForFlags(tree.value[0])
+            }else if(tree.value[0].token == 'FLAG'){
+                indexFlag(tree.value[0])
             }
 
             for(let i = 0; i < tree.value[1].value.length; i++){
@@ -291,6 +295,8 @@ function compile(tree){
         tree[i] = searchForCodeBlock(tree[i])
     }
 
+    console.log(flags)
+
     for(let i = 0; i < flags.length; i++){
         let data = {
             default: 0,
@@ -299,6 +305,8 @@ function compile(tree){
                 1
             ]
         }
+
+        console.log('ADDING TAG: ' + flags[i])
 
         worldRuntime['minecraft:entity'].description.properties['frw:' + flags[i]] = data
 
@@ -391,9 +399,6 @@ function compile(tree){
         }
 
         for(let l = 0; l < blocks[blockNames[i]].length; l++){
-            console.log('BUILDING ' + blockNames[i] + ' ' + l)
-            console.log(blocks[blockNames[i]][l].token)
-
             if(blocks[blockNames[i]][l].token == 'CALL'){
                 if(blocks[blockNames[i]][l].value[0].value == 'rc'){
                     data.sequence.push({

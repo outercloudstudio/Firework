@@ -1,562 +1,495 @@
 const util = require('util')
+const fs = require('fs')
+const { v4: uuidv4 } = require('uuid')
+const Firework = require('./Firework')
 
-function sleep(milliseconds) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-      currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-}
 
-function splitLines(tokens){
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
+function compile(tree){
+    fs.copyFileSync('./world_runtime_template.json', './world_runtime.json')
 
-        const nextToken = tokens[i + 1]
-
-        if(token.token == 'NEWLINE' && nextToken && nextToken.token == 'NEWLINE'){
-            tokens.splice(i, 1)
-            tokens[i].value = '\n'
-
-            i--
-        }
+    if(fs.existsSync('./animations')){
+        fs.rmSync('./animations', { recursive: true })
     }
 
-    let lines = []
+    fs.mkdirSync('./animations')
 
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
+    let worldRuntime = JSON.parse(fs.readFileSync('./world_runtime.json').toString())
 
-        if(token.token == 'NEWLINE'){
-            lines.push(tokens.slice(0, i))
+    let blocks = {}
 
-            tokens.splice(0, i + 1)
+    let dynamicVariables = {}
 
-            i = 0
+    let dynamicValues = {}
+
+    let constants = {}
+
+    let flags = []
+
+    function expressionToMolang(expression){
+        let result = ''
+
+        if(expression.token == 'INTEGER' || expression.token == 'BOOLEAN'){
+            result += expression.value
+        }else if(expression.token == 'EXPRESSION'){
+            if(expression.value[0].value == '!'){
+                result += expressionToMolang(expression.value[1]) + ' == 0'
+            }else{
+                result += expressionToMolang(expression.value[1]) + ' ' + expression.value[0].value + ' ' + expressionToMolang(expression.value[2])
+            }
+        }else if(expression.token == 'FLAG'){
+            result = `q.actor_property('frw:${expression.value}')`
         }
+
+        return result
     }
 
-    lines.push(tokens.slice(0, tokens.length))
+    function optimizeExpression(expression){
+        let dynamic = false
 
-    return lines
-}
-
-function buildCodeBlocks(tokens){
-    let openPaths = []
-
-    for(let x = 0; x < tokens.length; x++){
-        for(let y = 0; y < tokens[x].length; y++){
-            if(tokens[x][y].value == '{' && tokens[x][y].token == 'SYMBOL'){
-                openPaths.push({ x: x, y: y })
+        if(expression.value[0].value == '+' || expression.value[0].value == '-' || expression.value == '*'[0].value || expression.value == '/'[0].value || expression.value[0].value == '&&' || expression.value[0].value == '||' || expression.value[0].value == '==' || expression.value[0].value == '>' || expression.value[0].value == '<' || expression.value[0].value == '>=' || expression.value[0].value == '<='){
+            if(expression.value[1].token == 'EXPRESSION'){
+                expression.value[1] = optimizeExpression(expression.value[1])
             }
 
-            if(tokens[x][y].value == '}' && tokens[x][y].token == 'SYMBOL'){
-                let openPath = openPaths.pop()
-
-                let inBlockLines = []
-
-                for(let i = openPath.x; i <= x; i++){
-                    if(i == openPath.x){
-                        inBlockLines.push(tokens[i].slice(openPath.y + 1, tokens[i].length))
-                    }else if(i == x){
-                        inBlockLines.push(tokens[i].slice(0, y))
-                    }else{
-                        inBlockLines.push(tokens[i])
-                    }
-                }
-
-                for(let i = 0; i < inBlockLines.length; i++){
-                    if(inBlockLines[i].length == 0){
-                        inBlockLines.splice(i, 1)
-                        i--
-                    }
-                }
-
-                tokens[openPath.x].splice(openPath.y, tokens[openPath.x].length, { value: inBlockLines, token: 'BLOCK' })
-
-                tokens[x].splice(0, y + 1)
-
-                if(x - openPath.x > 1){
-                    tokens.splice(openPath.x + 1, x - openPath.x - 1)
-                }
-
-                x -= x - openPath.x - 1
-            }
-        }
-    }
-
-    return tokens
-}
-
-function buildCompoundTypes(tokens){
-    for(let l = 0; l < tokens.length; l++){
-        let inString = false
-        let inStringIndex = -1
-
-        //Go Deeper Into Blocks
-        for(let i = 0; i < tokens[l].length; i++){
-            if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildCompoundTypes(tokens[l][i].value)
-            }
-        }
-
-        //Remove Whitespace and Create Strings
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-
-            if(token.token == 'SYMBOL' && (token.value == '"' || token.value == "'")){
-                inString = !inString
-
-                if(inString){
-                    inStringIndex = i
-                }else{            
-                    let tokensInString = tokens[l].slice(inStringIndex + 1, i)
-
-                    let resultString = ''
-
-                    for(j in tokensInString){
-                        resultString += tokensInString[j].value
-                    }
-
-                    tokens[l].splice(inStringIndex, i - inStringIndex + 1, { value: resultString, token: 'STRING' })
-
-                    i -= i - inStringIndex
-                }
+            if(expression.value[2].token == 'EXPRESSION'){
+                expression.value[2] = optimizeExpression(expression.value[2])
             }
             
-            if(token.token == 'WHITESPACE' && !inString){
-                tokens[l].splice(i, 1)
+            if(expression.value[1].dynamic || expression.value[2].dynamic){
+                dynamic = true
+            }
 
-                i--
+            if(expression.value[1].token == 'FLAG' || expression.value[2].token == 'FLAG'){
+                dynamic = true
+            }
+        }else if(expression.value[0].value == '!'){
+            if(expression.value[1].token == 'EXPRESSION'){
+                expression.value[1] = optimizeExpression(expression.value[1])
+            }
+
+            if(expression.value[1].dynamic){
+                dynamic = true
+            }
+
+            if(expression.value[1].token == 'FLAG'){
+                dynamic = true
             }
         }
 
-        //Combine Numbers
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
+        if(dynamic){
+            expression.dynamic = true
+        }else{
+            if(expression.value[0].value == '+'){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
 
-            if(token.token == 'INTEGER'){
-                let nextToken = tokens[l][i + 1]
+                expression = { value: (parseInt(expression.value[1].value) + parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
+            }else if(expression.value[0].value == '-'){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
 
-                if(nextToken && nextToken.token == 'INTEGER'){
-                    tokens[l].splice(i, 2, { value: token.value + nextToken.value, token: 'INTEGER' })
+                expression = { value: (parseInt(expression.value[1].value) - parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
+            }else if(expression.value[0].value == '*'){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
 
-                    i--
+                expression = { value: (parseInt(expression.value[1].value) * parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
+            }else if(expression.value[0].value == '+'){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (parseInt(expression.value[1].value) / parseInt(expression.value[2].value)).toString(), token: 'FLOAT' }
+            }else if(expression.value[0].value == '>'){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (parseInt(expression.value[1].value) > parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '<'){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (parseInt(expression.value[1].value) < parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '>='){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (parseInt(expression.value[1].value) >= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '<='){
+                if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (parseInt(expression.value[1].value) <= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '&&'){
+                if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (expression.value[1].value == 'true' && expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '||'){
+                if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
+                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
+                }
+
+                expression = { value: (expression.value[1].value == 'true' || expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '!'){
+                if(!(expression.value[1].token == 'BOOLEAN')){
+                    console.log(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}`)
+                    return new Firework.Error(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}`)
+                }
+
+                expression = { value: (expression.value[1].value != 'true').toString(), token: 'BOOLEAN' }
+            }else if(expression.value[0].value == '=='){
+                if(expression.value[1].token != expression.value[2].token){
+                    expression = { value: 'false', token: 'BOOLEAN' }
+                }else{
+                    expression = { value: (expression.value[1].value == expression.value[2].value).toString(), token: 'BOOLEAN' }
                 }
             }
         }
 
-        //Build Flags
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const prevToken = tokens[l][i - 1]
-
-            if(token.token == 'NAME' && prevToken && prevToken.token == 'SYMBOL' && prevToken.value == '$'){
-                tokens[l].splice(i - 1, 2, { value: token.value, token: 'FLAG' })
-
-                i--
-            }
-        }
-
-        //Build Molang
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const prevToken = tokens[l][i - 1]
-
-            if(token.token == 'STRING' && prevToken && prevToken.token == 'SYMBOL' && prevToken.value == '?'){
-                tokens[l].splice(i - 1, 2, { value: token.value, token: 'MOLANG' })
-
-                i--
-            }
-        }
-
-        //Build Arrows
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const prevToken = tokens[l][i - 1]
-
-            if(token.token == 'SYMBOL' && token.value == '>' && prevToken && prevToken.token == 'SYMBOL' && prevToken.value == '='){
-                tokens[l].splice(i - 1, 2, { value: token.value, token: 'ARROW' })
-
-                i--
-            }
-        }
-
-        //Build Empty Function Calls
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const nextToken = tokens[l][i + 1]
-            const nextNextToken = tokens[l][i + 2]
-
-            if(token.token == 'NAME' && nextToken && nextToken.value == '(' && nextNextToken && nextNextToken.value == ')'){
-                tokens[l].splice(i, 3, { value: [token], token: 'CALL' })
-            }
-        }
+        return expression
     }
 
-    return tokens
-}
-
-function buildExpressions(tokens){
-    for(let l = 0; l < tokens.length; l++){
-        //Go Deeper Into Blocks
-        for(let i = 0; i < tokens[l].length; i++){
-            if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildExpressions(tokens[l][i].value)
+    function searchForExpression(tree){
+        if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
+            tree.value[1].value = searchForExpression(tree.value[1].value)
+        }else if(tree.token == 'ASSIGN' && tree.value[0].value == 'const'){
+            if(tree.value[2].token == 'EXPRESSION'){
+                tree.value[2] = optimizeExpression(tree.value[2])
             }
-        }
-
-        //Build Expression
-        for(let i = 0; i < tokens[l].length; i++){
-            tokens[l] = buildExpressionsSingle(tokens[l])
-        }
-    }
-
-    return tokens
-}
-
-function buildExpressionsSingle(tokens){
-    //Create Parantheses Groups
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && token.value == '('){
-            let prevToken = tokens[i - 1]
-
-            if(!(prevToken && (prevToken.token == 'NAME' || prevToken.token == 'KEYWORD'))){
-                let endingIndex = -1
-
-                for(let j = i + 1; j < tokens.length; j++){
-                    const nextToken = tokens[j]
-
-                    if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
-                        endingIndex = j
-                        break;
-                    }
-                }
-
-                let insideTokens = tokens.slice(i + 1, endingIndex)
-
-                tokens.splice(i, endingIndex - i + 1, { value: buildParamsSingle(insideTokens), token: 'EXPRESSION' })
-
-                i--
-            }
-        }
-    }
-
-    //Create Expressions * and /
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && (token.value == '*' || token.value == '/')){
-            let nextToken = tokens[i + 1]
-            let prevToken = tokens[i - 1]
-
-            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
-
-                i--
-            }
-        }
-    }
-
-    //Create Expressions + and -
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        if(token.token == 'SYMBOL' && (token.value == '+' || token.value == '-')){
-            let nextToken = tokens[i + 1]
-            let prevToken = tokens[i - 1]
-
-            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
-
-                i--
-            }
-        }
-    }
-
-    //Create Expressions !
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-
-        //console.log('NOT:')
-        //console.log(token)
-
-        if(token.token == 'SYMBOL' && token.value == '!'){
-            let nextToken = tokens[i + 1]
-
-            //console.log(nextToken)
-
-            if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG')){
-                tokens.splice(i, 2, { value: [token, nextToken], token: 'EXPRESSION' })
-            }
-        }
-    }
-
-    //Create Expressions == > < >= <=
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-        const nextToken = tokens[i + 1]
-
-        if(token.token == 'SYMBOL' && (token.value == '=' || token.value == '>' || token.value == '<')){
-            let prevToken = tokens[i - 1]
-
-            if(prevToken && nextToken){
-                if(nextToken.token == 'SYMBOL' && nextToken.value == '='){
-                    let nextNextToken = tokens[i + 2]
-                    
-                    if(token.value == '>' || token.value == '<'){
-                      if((nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                          const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
-                          
-                          tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
-
-                          i--
-                      }
-                    }else{
-                      if((nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN')){
-                          const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
-                          
-                          tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
-
-                          i--
-                      }
-                    }
-                }else if(token.value == '>' || token.value == '<'){
-                    if((nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                        tokens.splice(i - 1, 4, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
-
-                        i--
-                    }
+        }else if(tree.token == 'CALL'){
+            for(let i = 1; i < tree.value.length; i++){
+                if(tree.value[i].token == 'EXPRESSION'){
+                    tree.value[i] = optimizeExpression(tree.value[i])
                 }
             }
         }
+
+        return tree
     }
 
-    //Create Expressions || and &&
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
-        const nextToken = tokens[i + 1]
+    function indexCodeBlock(block, mode, condition = null, preferedID = null){
+        for(let i = 0; i < block.value.length; i++){
+            block.value[i] = searchForCodeBlock(block.value[i])
+        }
 
-        if(token.token == 'SYMBOL' && nextToken && nextToken.token == 'SYMBOL' && ((token.value == '|' && nextToken.value == '|') || (token.value == '&' && nextToken.value == '&'))){
-            let nextNextToken = tokens[i + 2]
-            let prevToken = tokens[i - 1]
+        let ID = uuidv4()
 
-            if(prevToken && nextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION')){
-                const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
-                
-                tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+        if(preferedID != null && !blocks[preferedID]){
+            ID = preferedID
+        }
 
-                i--
+        if(mode == 'conditional'){
+            let molang = expressionToMolang(condition)
+
+            dynamicValues[ID] = {
+                condition: molang
+            }
+        }
+
+        blocks[ID] = block.value
+
+        block = { value: [ID, mode], token: 'BLOCKREF'}
+
+        return block
+    }
+
+    function indexConstant(token){
+        if(token.value[2].token == 'EXPRESSION' || token.value[2].dynamic){
+            console.log(`Can not assign dyncamic value to const ${token.value[1].value}!`)
+            return new Firework.Error(`Can not assign dyncamic value to const ${token.value[1].value}!`)
+        }
+
+        if(constants[token.value[1].value]){
+            console.log(`Can not initialize constant ${token.value[1].value} more than once!`)
+            return new Firework.Error(`Can not initialize constant ${token.value[1].value} more than once!`)
+        }
+
+        constants[token.value[1].value] = token.value[2]
+    }
+
+    function searchForCodeBlock(tree){
+        if(tree.token == 'DEFINITION'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
+        }else if(tree.token == 'IF'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'conditional', tree.value[0])
+        }else if(tree.token == 'DELAY'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'delay')
+        }
+
+        return tree
+    }
+
+    function searchForCodeBlock(tree){
+        if(tree.token == 'DEFINITION'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
+        }else if(tree.token == 'IF'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'conditional', tree.value[0])
+        }else if(tree.token == 'DELAY'){
+            tree.value[1] = indexCodeBlock(tree.value[1], 'delay')
+        }
+
+        return tree
+    }
+
+    function indexFlag(flag){
+        flags.push(flag.value)
+    }
+
+    function searchForFlags(tree){
+        if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
+
+            if(tree.value[0].token == 'EXPRESSION'){
+                tree.value[0] = searchForFlags(tree.value[0])
+            }
+
+            for(let i = 0; i < tree.value[1].value.length; i++){
+                tree.value[1].value[i] = searchForFlags(tree.value[1].value[i])
+            }
+        }else if(tree.token == 'ASSIGN' && tree.value[0].token == 'FLAG'){
+            indexFlag(tree.value[0])
+        }
+
+        return tree
+    }
+
+    for(let i = 0; i < tree.length; i++){
+        tree[i] = searchForExpression(tree[i])
+    }
+
+    for(let i = 0; i < tree.length; i++){
+        if(tree[i].token == 'ASSIGN'){
+            if(tree[i].value[0].value == 'const'){
+                indexConstant(tree[i])
             }
         }
     }
 
-    return tokens
-}
+    for(let i = 0; i < tree.length; i++){
+        tree[i] = searchForFlags(tree[i])
+    }
 
-function buildParamsSingle(tokens){
-    //Go Into Complex Function Calls
-    for(let i = 0; i < tokens.length; i++){
-        const token = tokens[i]
+    for(let i = 0; i < tree.length; i++){
+        tree[i] = searchForCodeBlock(tree[i])
+    }
 
-        if(token.token == 'SYMBOL' && token.value == '('){
-            const prevToken = tokens[i - 1]
+    for(let i = 0; i < flags.length; i++){
+        let data = {
+            default: 0,
+            values: [
+                0,
+                1
+            ]
+        }
 
-            if(prevToken && prevToken.token == 'NAME'){
-                for(let j = i + 1; j < tokens.length; j++){
-                    const otherToken = tokens[j]
+        worldRuntime['minecraft:entity'].description.properties['frw:' + flags[i]] = data
 
-                    if(otherToken.token == 'SYMBOL' && otherToken.value == '('){
-                        const otherPrevToken = tokens[j - 1]
+        let eventData = {
+            set_actor_property: {}
+        }
+        
+        eventData.set_actor_property['frw:' + flags[i]] = 1
 
-                        if(otherPrevToken && otherPrevToken.token == 'NAME'){
-                            let opensFound = 0
+        worldRuntime['minecraft:entity'].events['frw:set_' + flags[i]] = eventData
 
-                            let endIndex = -1
+        eventData = {
+            set_actor_property: {}
+        }
+        
+        eventData.set_actor_property['frw:' + flags[i]] = 0
 
-                            for(let u = j + 1; u < tokens.length; u++){
-                                const otherOtherToken = tokens[u]
-            
-                                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
-                                    opensFound++
-                                }
+        worldRuntime['minecraft:entity'].events['frw:unset_' + flags[i]] = eventData
+    }
 
-                                if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == ')'){
-                                    if(opensFound == 0){
-                                        endIndex = u
+    const dynamicValueNames = Object.getOwnPropertyNames(dynamicValues)
 
-                                        break
-                                    }else{
-                                        opensFound--
-                                    }
-                                }
+    for(let i = 0; i < dynamicValueNames.length; i++){
+        let data = {
+            default: 0,
+            values: [
+                0,
+                1
+            ]
+        }
+
+        worldRuntime['minecraft:entity'].description.properties['frw:' + dynamicValueNames[i]] = data
+
+        let animCont = {
+            "format_version": "1.10.0",
+            "animations": {}
+        }
+
+        animCont.animations['animation.firework.runtime.' + dynamicValueNames[i]] = {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    `/tag @s add frw_conditional_${dynamicValueNames[i]}`
+                ]
+            },
+            "animation_length": 0.001
+        }
+
+        fs.writeFileSync('./animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
+
+        worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i]] = 'animation.firework.runtime.' + dynamicValueNames[i]
+
+        let animData = {}
+
+        animData[dynamicValueNames[i]] = dynamicValues[dynamicValueNames[i]].condition
+
+        worldRuntime['minecraft:entity'].description.scripts.animate.push(animData)
+
+        animCont = {
+            "format_version": "1.10.0",
+            "animations": {}
+        }
+
+        animCont.animations['animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'] = {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    `/tag @s remove frw_conditional_${dynamicValueNames[i]}`
+                ]
+            },
+            "animation_length": 0.001
+        }
+
+        fs.writeFileSync('./animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
+
+        worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i] + '_inverse'] = 'animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'
+
+        animData = {}
+
+        animData[dynamicValueNames[i] + '_inverse'] = '(' + dynamicValues[dynamicValueNames[i]].condition + ') == 0'
+
+        worldRuntime['minecraft:entity'].description.scripts.animate.push(animData)
+    }
+
+    const blockNames = Object.getOwnPropertyNames(blocks)
+
+    for(let i = 0; i < blockNames.length; i++){
+        let data = {
+            sequence: []
+        }
+
+        for(let l = 0; l < blocks[blockNames[i]].length; l++){
+            console.log('BUILDING ' + blockNames[i] + ' ' + l)
+            console.log(blocks[blockNames[i]][l].token)
+
+            if(blocks[blockNames[i]][l].token == 'CALL'){
+                if(blocks[blockNames[i]][l].value[0].value == 'rc'){
+                    data.sequence.push({
+                        run_command: {
+                            command: [
+                                '/' + blocks[blockNames[i]][l].value[1].value
+                            ]
+                        }
+                    })
+                }else{
+                    if(blocks[blocks[blockNames[i]][l].value[0].value]){
+                        data.sequence.push({
+                            run_command: {
+                                command: [
+                                    `/event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
+                                ]
                             }
-
-                            let parsed = buildParamsSingle(tokens.slice(j - 1, endIndex + 1))[0]
-
-                            tokens.splice(j - 1, endIndex - j + 2, parsed)
+                        })
+                    }
+                }
+            }else if(blocks[blockNames[i]][l].token == 'DEFINITION' || blocks[blockNames[i]][l].token == 'IF' || blocks[blockNames[i]][l].token == 'DELAY'){
+                if(blocks[blockNames[i]][l].value[1].value[1] == 'normal'){
+                    data.sequence.push({
+                        run_command: {
+                            command: [
+                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
+                            ]
                         }
-                    }
-                }
-
-                let opensFound = 0
-
-                let endIndex = -1
-
-                for(let u = i + 1; u < tokens.length; u++){
-                    const otherOtherToken = tokens[u]
-
-                    if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == '('){
-                        opensFound++
-                    }
-
-                    if(otherOtherToken.token == 'SYMBOL' && otherOtherToken.value == ')'){
-                        if(opensFound == 0){
-                            endIndex = u
-
-                            break
-                        }else{
-                            opensFound--
+                    })
+                }else if(blocks[blockNames[i]][l].value[1].value[1] == 'conditional'){
+                    data.sequence.push({
+                        run_command: {
+                            command: [
+                                `/event entity @s[tag=frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
+                            ]
                         }
-                    }
+                    })
+                }else if(blocks[blockNames[i]][l].value[1].value[1] == 'delay'){
+                    data.sequence.push({
+                        run_command: {
+                            command: [
+                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
+                            ]
+                        }
+                    })
                 }
-
-                //Build Expressions Between Commas
-                let groups = []
-                let lastGroupPos = i
-
-                for(let k = i; k < endIndex; k++){
-                    const goalToken = tokens[k]
-
-                    if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
-                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k)[0])
-                        groups.push(group)
-
-                        lastGroupPos = k
-                    }
+            }else if(blocks[blockNames[i]][l].token == 'ASSIGN'){
+                if(blocks[blockNames[i]][l].value[1].value == 'true'){
+                    data.sequence.push(
+                        {
+                            run_command: {
+                                command: [
+                                    `/event entity @s frw:set_${blocks[blockNames[i]][l].value[0].value}`
+                                ]
+                            }
+                        }
+                    )
+                }else{
+                    data.sequence.push(
+                        {
+                            run_command: {
+                                command: [
+                                    `/event entity @s frw:unset_${blocks[blockNames[i]][l].value[0].value}`
+                                ]
+                            }
+                        }
+                    )
                 }
-
-                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex)[0])
-
-                groups.push(group)
-
-                groups.unshift(prevToken)
-
-                tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'Call' })
             }
         }
+
+        worldRuntime['minecraft:entity'].events['frw:' + blockNames[i]] = data
     }
 
-    return tokens
-}
-
-function buildParams(tokens){
-    for(let l = 0; l < tokens.length; l++){
-        //Go Deeper Into Blocks
-        for(let i = 0; i < tokens[l].length; i++){
-            if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildParams(tokens[l][i].value)
-            }
-        }
-
-        tokens[l] = buildParamsSingle(tokens[l])
+    let updateData = {
+        "format_version": "1.10.0",
+        "animations": {}
     }
 
-    return tokens
-}
+    const updateID = uuidv4()
 
-function buildAsignments(tokens){
-    for(let l = 0; l < tokens.length; l++){
-        //Go Deeper Into Blocks
-        for(let i = 0; i < tokens[l].length; i++){
-            if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildAsignments(tokens[l][i].value)
-            }
-        }
-
-        //Build Asignments
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const nextToken = tokens[l][i + 1]
-            const nextNextToken = tokens[l][i + 2]
-            const nextNextNextToken = tokens[l][i + 3]
-
-            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG')){
-                tokens[l].splice(i, 4, { value: [token, nextNextToken, nextNextNextToken], token: 'ASIGN' })
-            }
-        }
+    updateData.animations['animation.firework.runtime.' + updateID + '.update'] = {
+        "loop": true,
+        "timeline": {
+            "0.0": [
+                `/event entity @s frw:update`
+            ]
+        },
+        "animation_length": 0.001
     }
 
-    return tokens
+    fs.writeFileSync('./animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
+
+    worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
+
+    fs.writeFileSync('./world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }
 
-function buildIfAndDelay(tokens){
-    for(let l = 0; l < tokens.length; l++){
-        //Go Deeper Into Blocks
-        for(let i = 0; i < tokens[l].length; i++){
-            if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildIfAndDelay(tokens[l][i].value)
-            }
-        }
-
-        //Build Ifs And Delays
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const nextToken = tokens[l][i + 1]
-            const nextNextToken = tokens[l][i + 2]
-            const nextNextNextToken = tokens[l][i + 3]
-            const nextNextNextNextToken = tokens[l][i + 4]
-            const nextNextNextNextNextToken = tokens[l][i + 5]
-
-            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
-                tokens[l].splice(i, 6, { value: [nextNextToken, nextNextNextNextNextToken], token: 'IF' })
-            }
-        }
-
-        for(let i = 0; i < tokens[l].length; i++){
-            const token = tokens[l][i]
-            const nextToken = tokens[l][i + 1]
-            const nextNextToken = tokens[l][i + 2]
-            const nextNextNextToken = tokens[l][i + 3]
-            const nextNextNextNextToken = tokens[l][i + 4]
-            const nextNextNextNextNextToken = tokens[l][i + 5]
-
-            if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'INTEGER' || nextNextToken.token == 'NAME' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
-                tokens[l].splice(i, 6, { value: [nextNextToken, nextNextNextNextNextToken], token: 'DELAY' })
-            }
-        }
-    }
-
-    return tokens
-}
-
-function generateETree(tokens){
-    tokens = splitLines(tokens)
-    
-    tokens = buildCodeBlocks(tokens)
-
-    for(let i = 0; i < tokens.length; i++){
-        if(tokens[i].length == 0){
-            tokens.splice(i, 1)
-            i--
-        }
-    }
-
-    tokens = buildCompoundTypes(tokens)
-
-    tokens = buildParams(tokens)
-
-    tokens = buildExpressions(tokens)
-
-    tokens = buildAsignments(tokens)
-
-    tokens = buildIfAndDelay(tokens)
-
-    //tokens = removeEmpties(tokens)
-
-    return tokens
-}
-
-module.exports = { generateETree }
+module.exports = { compile }

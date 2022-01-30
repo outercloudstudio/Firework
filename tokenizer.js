@@ -58,7 +58,9 @@ const symbols = [
 const keywords = [
     'if',
     'const',
-    'dyn'
+    'dyn',
+    'func',
+    'delay'
 ]
 
 function tokenize(input) {
@@ -142,7 +144,9 @@ function tokenize(input) {
         }
     }
 
-    if(lastUnkown != -1) tokens.splice(tokens.length - 1, { value: input.substring(lastUnkown, readStart), token: 'NAME' })
+    if(lastUnkown != -1) {
+        tokens.push({ value: input.substring(lastUnkown, readStart), token: 'NAME' })
+    }
 
     return tokens
 }

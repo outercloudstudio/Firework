@@ -64,6 +64,10 @@ function compile(tree){
             if(expression.value[1].token == 'FLAG' || expression.value[2].token == 'FLAG'){
                 dynamic = true
             }
+
+            if(expression.value[1].token == 'MOLANG' || expression.value[2].token == 'MOLANG'){
+                dynamic = true
+            }
         }else if(expression.value[0].value == '!'){
             if(expression.value[1].token == 'EXPRESSION'){
                 expression.value[1] = optimizeExpression(expression.value[1])
@@ -74,6 +78,10 @@ function compile(tree){
             }
 
             if(expression.value[1].token == 'FLAG'){
+                dynamic = true
+            }
+
+            if(expression.value[1].token == 'MOLANG'){
                 dynamic = true
             }
         }

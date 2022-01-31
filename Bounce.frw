@@ -1,0 +1,48 @@
+func start => {
+    $right = true
+    $up = true
+}
+
+func update => {
+    if(?"q.position(0) < -4") => {
+        $left = false
+        $right = true
+    }
+
+    if(?"q.position(0) > 4") => {
+        $left = true
+        $right = false
+    }
+
+    if(?"q.position(1) < 119") => {
+        $down = false
+        $up = true
+    }
+
+    if(?"q.position(1) > 127") => {
+        $down = true
+        $up = false
+    }
+
+    if($left) => {
+        rc("tp ~-0.2 ~ ~")
+    }
+
+    if($right) => {
+        rc("tp ~0.2 ~ ~")
+    }
+
+    if($up) => {
+        rc("tp ~ ~0.2 ~")
+    }
+
+    if($down) => {
+        rc("tp ~ ~-0.2 ~")
+    }
+
+    rc("setblock ~ ~2 ~ diamond_ore")
+    rc("setblock ~ ~3 ~ air")
+    rc("setblock ~ ~1 ~ air")
+    rc("setblock ~-1 ~2 ~ air")
+    rc("setblock ~1 ~2 ~ air")
+}

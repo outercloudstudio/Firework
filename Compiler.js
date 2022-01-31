@@ -30,6 +30,8 @@ function compile(tree){
 
         if(expression.token == 'INTEGER' || expression.token == 'BOOLEAN'){
             result += expression.value
+        }else if(expression.token == 'MOLANG'){
+            result += '(' + expression.value + ')'
         }else if(expression.token == 'EXPRESSION'){
             if(expression.value[0].value == '!'){
                 result += expressionToMolang(expression.value[1]) + ' == 0'
@@ -251,8 +253,6 @@ function compile(tree){
     }
 
     function indexFlag(flag){
-        console.log('INDEXED FLAG' + flag.value)
-
         flags.push(flag.value)
     }
 
@@ -295,8 +295,6 @@ function compile(tree){
         tree[i] = searchForCodeBlock(tree[i])
     }
 
-    console.log(flags)
-
     for(let i = 0; i < flags.length; i++){
         let data = {
             default: 0,
@@ -305,8 +303,6 @@ function compile(tree){
                 1
             ]
         }
-
-        console.log('ADDING TAG: ' + flags[i])
 
         worldRuntime['minecraft:entity'].description.properties['frw:' + flags[i]] = data
 

@@ -1,0 +1,14 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.firework.runtime.9b9fd58a-8eaf-4436-8737-912450defb11.update": {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    "/event entity @s frw:update"
+                ]
+            },
+            "animation_length": 0.001
+        }
+    }
+}

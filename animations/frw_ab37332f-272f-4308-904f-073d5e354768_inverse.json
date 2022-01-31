@@ -1,0 +1,14 @@
+{
+    "format_version": "1.10.0",
+    "animations": {
+        "animation.firework.runtime.ab37332f-272f-4308-904f-073d5e354768.inverse": {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    "/tag @s remove frw_conditional_ab37332f-272f-4308-904f-073d5e354768"
+                ]
+            },
+            "animation_length": 0.001
+        }
+    }
+}

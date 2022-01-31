@@ -350,7 +350,7 @@ function buildExpressionsSingle(tokens){
             let nextNextToken = tokens[i + 2]
             let prevToken = tokens[i - 1]
 
-            if(prevToken && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN')){
+            if(prevToken && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG')){
                 const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
                 
                 tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION'})
@@ -510,7 +510,7 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
-            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'MOLANG') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
                 for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
                     nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
                 }
@@ -527,7 +527,7 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
-            if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'INTEGER' || nextNextToken.token == 'NAME' || nextNextToken.token == 'EXPRESSION') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+            if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && nextNextToken.token == 'INTEGER' && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
                 for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
                     nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
                 }
@@ -597,8 +597,6 @@ function generateETree(tokens){
     tokens = buildParams(tokens)
 
     tokens = buildExpressions(tokens)
-
-    tokens = buildAsignments(tokens)
 
     tokens = buildIfAndDelay(tokens)
 

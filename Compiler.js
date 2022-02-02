@@ -5,6 +5,8 @@ const Firework = require('./Firework')
 
 
 function compile(tree){
+    //console.log(util.inspect(tree, false, null, true /* enable colors */))
+
     fs.copyFileSync('./world_runtime_template.json', './world_runtime.json')
 
     if(fs.existsSync('./animations')){
@@ -26,29 +28,41 @@ function compile(tree){
     let flags = []
 
     function expressionToMolang(expression){
+        console.log('EXP TO MOL: ' + expression.token)
+        console.log(util.inspect(expression, false, null, true /* enable colors */))
+
         let result = ''
 
         if(expression.token == 'INTEGER' || expression.token == 'BOOLEAN'){
-            result += expression.value
+            result = expression.value
         }else if(expression.token == 'MOLANG'){
-            result += '(' + expression.value + ')'
+            result = '(' + expression.value + ')'
         }else if(expression.token == 'EXPRESSION'){
             if(expression.value[0].value == '!'){
-                result += expressionToMolang(expression.value[1]) + ' == 0'
+                result = expressionToMolang(expression.value[1]) + ' == 0'
             }else{
-                result += expressionToMolang(expression.value[1]) + ' ' + expression.value[0].value + ' ' + expressionToMolang(expression.value[2])
+                result = expressionToMolang(expression.value[1]) + ' ' + expression.value[0].value + ' ' + expressionToMolang(expression.value[2])
             }
         }else if(expression.token == 'FLAG'){
             result = `q.actor_property('frw:${expression.value}')`
+        }else if(expression.token == 'CALL'){
+            if(expression.value[0].value == 'rand'){
+                console.log('GOT RAND')
+                result = `(math.die_roll(1, 0, 1) > 0.45)`
+            }
         }
+
+        console.log('RET: ' + result)
 
         return result
     }
 
     function optimizeExpression(expression){
+        console.log('OPTOMIZE: ' + expression.token)
+
         let dynamic = false
 
-        if(expression.value[0].value == '+' || expression.value[0].value == '-' || expression.value == '*'[0].value || expression.value == '/'[0].value || expression.value[0].value == '&&' || expression.value[0].value == '||' || expression.value[0].value == '==' || expression.value[0].value == '>' || expression.value[0].value == '<' || expression.value[0].value == '>=' || expression.value[0].value == '<='){
+        if(expression.token == 'SYMBOL' && (expression.value[0].value == '+' || expression.value[0].value == '-' || expression.value == '*'[0].value || expression.value == '/'[0].value || expression.value[0].value == '&&' || expression.value[0].value == '||' || expression.value[0].value == '==' || expression.value[0].value == '>' || expression.value[0].value == '<' || expression.value[0].value == '>=' || expression.value[0].value == '<=')){
             if(expression.value[1].token == 'EXPRESSION'){
                 expression.value[1] = optimizeExpression(expression.value[1])
             }
@@ -68,7 +82,7 @@ function compile(tree){
             if(expression.value[1].token == 'MOLANG' || expression.value[2].token == 'MOLANG'){
                 dynamic = true
             }
-        }else if(expression.value[0].value == '!'){
+        }else if(expression.token == 'SYMBOL' && (expression.value[0].value == '!')){
             if(expression.value[1].token == 'EXPRESSION'){
                 expression.value[1] = optimizeExpression(expression.value[1])
             }
@@ -219,6 +233,8 @@ function compile(tree){
 
         block = { value: [ID, mode], token: 'BLOCKREF'}
 
+        console.log('INDEXED BLOCK: ' + ID)
+
         return block
     }
 
@@ -234,18 +250,6 @@ function compile(tree){
         }
 
         constants[token.value[1].value] = token.value[2]
-    }
-
-    function searchForCodeBlock(tree){
-        if(tree.token == 'DEFINITION'){
-            tree.value[1] = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
-        }else if(tree.token == 'IF'){
-            tree.value[1] = indexCodeBlock(tree.value[1], 'conditional', tree.value[0])
-        }else if(tree.token == 'DELAY'){
-            tree.value[1] = indexCodeBlock(tree.value[1], 'delay')
-        }
-
-        return tree
     }
 
     function searchForCodeBlock(tree){

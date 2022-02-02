@@ -1,11 +1,11 @@
 {
     "format_version": "1.10.0",
     "animations": {
-        "animation.firework.runtime.ab37332f-272f-4308-904f-073d5e354768": {
+        "animation.firework.runtime.86fdbc25-0e9e-4da3-aee6-f952c93c223b": {
             "loop": true,
             "timeline": {
                 "0.0": [
-                    "/tag @s add frw_conditional_ab37332f-272f-4308-904f-073d5e354768"
+                    "/tag @s add frw_conditional_86fdbc25-0e9e-4da3-aee6-f952c93c223b"
                 ]
             },
             "animation_length": 0.001

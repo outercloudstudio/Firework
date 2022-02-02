@@ -451,7 +451,7 @@ function buildParamsSingle(tokens){
 
                 groups.unshift(prevToken)
 
-                tokens.splice(i - 1, endIndex - i + 3, { value: groups, token: 'CALL' })
+                tokens.splice(i - 1, endIndex - i + 2, { value: groups, token: 'CALL' })
             }
         }
     }
@@ -510,7 +510,7 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
-            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'MOLANG') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'CALL') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
                 for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
                     nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
                 }

@@ -7,84 +7,28 @@
             "is_summonable": true,
             "is_experimental": false,
             "properties": {
-                "frw:right": {
+                "frw:x": {
                     "default": 0,
                     "values": [
                         0,
                         1
                     ]
                 },
-                "frw:up": {
+                "frw:86fdbc25-0e9e-4da3-aee6-f952c93c223b": {
                     "default": 0,
                     "values": [
                         0,
                         1
                     ]
                 },
-                "frw:left": {
+                "frw:56de1772-afba-4d81-a06e-01713dcdb349": {
                     "default": 0,
                     "values": [
                         0,
                         1
                     ]
                 },
-                "frw:down": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:474c6920-341e-4712-8570-2f5d4b168346": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:7a931926-18ab-4870-93d0-fb1e80abdaf2": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:d652da69-f0ba-4278-8062-0c55e5ac7df0": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:969c1c3b-3e0b-4046-bf99-64892b0d9e06": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:6e0f9020-121a-43f7-bb3e-501f5aa9370c": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:a166eba5-ce28-4f92-8a70-42e4da9ebea2": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:5da24bab-9ee8-4249-9301-f43c9f693976": {
-                    "default": 0,
-                    "values": [
-                        0,
-                        1
-                    ]
-                },
-                "frw:ab37332f-272f-4308-904f-073d5e354768": {
+                "frw:7a553c84-5c60-4131-88fa-87ae374e2bc3": {
                     "default": 0,
                     "values": [
                         0,
@@ -93,74 +37,34 @@
                 }
             },
             "animations": {
-                "474c6920-341e-4712-8570-2f5d4b168346": "animation.firework.runtime.474c6920-341e-4712-8570-2f5d4b168346",
-                "474c6920-341e-4712-8570-2f5d4b168346_inverse": "animation.firework.runtime.474c6920-341e-4712-8570-2f5d4b168346.inverse",
-                "7a931926-18ab-4870-93d0-fb1e80abdaf2": "animation.firework.runtime.7a931926-18ab-4870-93d0-fb1e80abdaf2",
-                "7a931926-18ab-4870-93d0-fb1e80abdaf2_inverse": "animation.firework.runtime.7a931926-18ab-4870-93d0-fb1e80abdaf2.inverse",
-                "d652da69-f0ba-4278-8062-0c55e5ac7df0": "animation.firework.runtime.d652da69-f0ba-4278-8062-0c55e5ac7df0",
-                "d652da69-f0ba-4278-8062-0c55e5ac7df0_inverse": "animation.firework.runtime.d652da69-f0ba-4278-8062-0c55e5ac7df0.inverse",
-                "969c1c3b-3e0b-4046-bf99-64892b0d9e06": "animation.firework.runtime.969c1c3b-3e0b-4046-bf99-64892b0d9e06",
-                "969c1c3b-3e0b-4046-bf99-64892b0d9e06_inverse": "animation.firework.runtime.969c1c3b-3e0b-4046-bf99-64892b0d9e06.inverse",
-                "6e0f9020-121a-43f7-bb3e-501f5aa9370c": "animation.firework.runtime.6e0f9020-121a-43f7-bb3e-501f5aa9370c",
-                "6e0f9020-121a-43f7-bb3e-501f5aa9370c_inverse": "animation.firework.runtime.6e0f9020-121a-43f7-bb3e-501f5aa9370c.inverse",
-                "a166eba5-ce28-4f92-8a70-42e4da9ebea2": "animation.firework.runtime.a166eba5-ce28-4f92-8a70-42e4da9ebea2",
-                "a166eba5-ce28-4f92-8a70-42e4da9ebea2_inverse": "animation.firework.runtime.a166eba5-ce28-4f92-8a70-42e4da9ebea2.inverse",
-                "5da24bab-9ee8-4249-9301-f43c9f693976": "animation.firework.runtime.5da24bab-9ee8-4249-9301-f43c9f693976",
-                "5da24bab-9ee8-4249-9301-f43c9f693976_inverse": "animation.firework.runtime.5da24bab-9ee8-4249-9301-f43c9f693976.inverse",
-                "ab37332f-272f-4308-904f-073d5e354768": "animation.firework.runtime.ab37332f-272f-4308-904f-073d5e354768",
-                "ab37332f-272f-4308-904f-073d5e354768_inverse": "animation.firework.runtime.ab37332f-272f-4308-904f-073d5e354768.inverse",
-                "frw_update": "animation.firework.runtime.9b9fd58a-8eaf-4436-8737-912450defb11.update"
+                "86fdbc25-0e9e-4da3-aee6-f952c93c223b": "animation.firework.runtime.86fdbc25-0e9e-4da3-aee6-f952c93c223b",
+                "86fdbc25-0e9e-4da3-aee6-f952c93c223b_inverse": "animation.firework.runtime.86fdbc25-0e9e-4da3-aee6-f952c93c223b.inverse",
+                "56de1772-afba-4d81-a06e-01713dcdb349": "animation.firework.runtime.56de1772-afba-4d81-a06e-01713dcdb349",
+                "56de1772-afba-4d81-a06e-01713dcdb349_inverse": "animation.firework.runtime.56de1772-afba-4d81-a06e-01713dcdb349.inverse",
+                "7a553c84-5c60-4131-88fa-87ae374e2bc3": "animation.firework.runtime.7a553c84-5c60-4131-88fa-87ae374e2bc3",
+                "7a553c84-5c60-4131-88fa-87ae374e2bc3_inverse": "animation.firework.runtime.7a553c84-5c60-4131-88fa-87ae374e2bc3.inverse",
+                "frw_update": "animation.firework.runtime.b86d2e3e-8736-44e2-ba71-e3ab13aed91c.update"
             },
             "scripts": {
                 "animate": [
                     "frw_update",
                     {
-                        "474c6920-341e-4712-8570-2f5d4b168346": "(q.position(0) < -4)"
+                        "86fdbc25-0e9e-4da3-aee6-f952c93c223b": "(math.die_roll(1, 0, 1) > 0.333)"
                     },
                     {
-                        "474c6920-341e-4712-8570-2f5d4b168346_inverse": "((q.position(0) < -4)) == 0"
+                        "86fdbc25-0e9e-4da3-aee6-f952c93c223b_inverse": "((math.die_roll(1, 0, 1) > 0.333)) == 0"
                     },
                     {
-                        "7a931926-18ab-4870-93d0-fb1e80abdaf2": "(q.position(0) > 4)"
+                        "56de1772-afba-4d81-a06e-01713dcdb349": "q.actor_property('frw:x')"
                     },
                     {
-                        "7a931926-18ab-4870-93d0-fb1e80abdaf2_inverse": "((q.position(0) > 4)) == 0"
+                        "56de1772-afba-4d81-a06e-01713dcdb349_inverse": "(q.actor_property('frw:x')) == 0"
                     },
                     {
-                        "d652da69-f0ba-4278-8062-0c55e5ac7df0": "(q.position(1) < 119)"
+                        "7a553c84-5c60-4131-88fa-87ae374e2bc3": "q.actor_property('frw:x') == 0"
                     },
                     {
-                        "d652da69-f0ba-4278-8062-0c55e5ac7df0_inverse": "((q.position(1) < 119)) == 0"
-                    },
-                    {
-                        "969c1c3b-3e0b-4046-bf99-64892b0d9e06": "(q.position(1) > 127)"
-                    },
-                    {
-                        "969c1c3b-3e0b-4046-bf99-64892b0d9e06_inverse": "((q.position(1) > 127)) == 0"
-                    },
-                    {
-                        "6e0f9020-121a-43f7-bb3e-501f5aa9370c": "q.actor_property('frw:left')"
-                    },
-                    {
-                        "6e0f9020-121a-43f7-bb3e-501f5aa9370c_inverse": "(q.actor_property('frw:left')) == 0"
-                    },
-                    {
-                        "a166eba5-ce28-4f92-8a70-42e4da9ebea2": "q.actor_property('frw:right')"
-                    },
-                    {
-                        "a166eba5-ce28-4f92-8a70-42e4da9ebea2_inverse": "(q.actor_property('frw:right')) == 0"
-                    },
-                    {
-                        "5da24bab-9ee8-4249-9301-f43c9f693976": "q.actor_property('frw:up')"
-                    },
-                    {
-                        "5da24bab-9ee8-4249-9301-f43c9f693976_inverse": "(q.actor_property('frw:up')) == 0"
-                    },
-                    {
-                        "ab37332f-272f-4308-904f-073d5e354768": "q.actor_property('frw:down')"
-                    },
-                    {
-                        "ab37332f-272f-4308-904f-073d5e354768_inverse": "(q.actor_property('frw:down')) == 0"
+                        "7a553c84-5c60-4131-88fa-87ae374e2bc3_inverse": "(q.actor_property('frw:x') == 0) == 0"
                     }
                 ]
             }
@@ -168,270 +72,105 @@
         "component_groups": {},
         "components": {},
         "events": {
-            "frw:start": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s frw:set_right"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s frw:set_up"
-                            ]
-                        }
-                    }
-                ]
-            },
+            "frw:start": {},
             "frw:update": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_474c6920-341e-4712-8570-2f5d4b168346] frw:474c6920-341e-4712-8570-2f5d4b168346"
+                                "/event entity @s frw:unset_x"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_7a931926-18ab-4870-93d0-fb1e80abdaf2] frw:7a931926-18ab-4870-93d0-fb1e80abdaf2"
+                                "/event entity @s[tag=frw_conditional_86fdbc25-0e9e-4da3-aee6-f952c93c223b] frw:86fdbc25-0e9e-4da3-aee6-f952c93c223b"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_d652da69-f0ba-4278-8062-0c55e5ac7df0] frw:d652da69-f0ba-4278-8062-0c55e5ac7df0"
+                                "/event entity @s[tag=frw_conditional_56de1772-afba-4d81-a06e-01713dcdb349] frw:56de1772-afba-4d81-a06e-01713dcdb349"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s[tag=frw_conditional_969c1c3b-3e0b-4046-bf99-64892b0d9e06] frw:969c1c3b-3e0b-4046-bf99-64892b0d9e06"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s[tag=frw_conditional_6e0f9020-121a-43f7-bb3e-501f5aa9370c] frw:6e0f9020-121a-43f7-bb3e-501f5aa9370c"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s[tag=frw_conditional_a166eba5-ce28-4f92-8a70-42e4da9ebea2] frw:a166eba5-ce28-4f92-8a70-42e4da9ebea2"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s[tag=frw_conditional_5da24bab-9ee8-4249-9301-f43c9f693976] frw:5da24bab-9ee8-4249-9301-f43c9f693976"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s[tag=frw_conditional_ab37332f-272f-4308-904f-073d5e354768] frw:ab37332f-272f-4308-904f-073d5e354768"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/setblock ~ ~2 ~ diamond_ore"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/setblock ~ ~3 ~ air"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/setblock ~ ~1 ~ air"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/setblock ~-1 ~2 ~ air"
-                            ]
-                        }
-                    },
-                    {
-                        "run_command": {
-                            "command": [
-                                "/setblock ~1 ~2 ~ air"
+                                "/event entity @s[tag=frw_conditional_7a553c84-5c60-4131-88fa-87ae374e2bc3] frw:7a553c84-5c60-4131-88fa-87ae374e2bc3"
                             ]
                         }
                     }
                 ]
             },
-            "frw:set_right": {
+            "frw:set_x": {
                 "set_actor_property": {
-                    "frw:right": 1
+                    "frw:x": 1
                 }
             },
-            "frw:unset_right": {
+            "frw:unset_x": {
                 "set_actor_property": {
-                    "frw:right": 0
+                    "frw:x": 0
                 }
             },
-            "frw:set_up": {
-                "set_actor_property": {
-                    "frw:up": 1
-                }
-            },
-            "frw:unset_up": {
-                "set_actor_property": {
-                    "frw:up": 0
-                }
-            },
-            "frw:set_left": {
-                "set_actor_property": {
-                    "frw:left": 1
-                }
-            },
-            "frw:unset_left": {
-                "set_actor_property": {
-                    "frw:left": 0
-                }
-            },
-            "frw:set_down": {
-                "set_actor_property": {
-                    "frw:down": 1
-                }
-            },
-            "frw:unset_down": {
-                "set_actor_property": {
-                    "frw:down": 0
-                }
-            },
-            "frw:474c6920-341e-4712-8570-2f5d4b168346": {
+            "frw:86fdbc25-0e9e-4da3-aee6-f952c93c223b": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s frw:unset_left"
+                                "/event entity @s frw:set_x"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "frw:56de1772-afba-4d81-a06e-01713dcdb349": {
+                "sequence": [
+                    {
+                        "run_command": {
+                            "command": [
+                                "/tp ~1 ~ ~"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s frw:set_right"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:7a931926-18ab-4870-93d0-fb1e80abdaf2": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s frw:set_left"
+                                "/setblock ~ ~ ~ sand"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s frw:unset_right"
+                                "/tp ~-1 ~ ~"
                             ]
                         }
                     }
                 ]
             },
-            "frw:d652da69-f0ba-4278-8062-0c55e5ac7df0": {
+            "frw:7a553c84-5c60-4131-88fa-87ae374e2bc3": {
                 "sequence": [
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s frw:unset_down"
+                                "/tp ~-1 ~ ~"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s frw:set_up"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:969c1c3b-3e0b-4046-bf99-64892b0d9e06": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/event entity @s frw:set_down"
+                                "/setblock ~ ~ ~ sand"
                             ]
                         }
                     },
                     {
                         "run_command": {
                             "command": [
-                                "/event entity @s frw:unset_up"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:6e0f9020-121a-43f7-bb3e-501f5aa9370c": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/tp ~-0.2 ~ ~"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:a166eba5-ce28-4f92-8a70-42e4da9ebea2": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/tp ~0.2 ~ ~"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:5da24bab-9ee8-4249-9301-f43c9f693976": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/tp ~ ~0.2 ~"
-                            ]
-                        }
-                    }
-                ]
-            },
-            "frw:ab37332f-272f-4308-904f-073d5e354768": {
-                "sequence": [
-                    {
-                        "run_command": {
-                            "command": [
-                                "/tp ~ ~-0.2 ~"
+                                "/tp ~1 ~ ~"
                             ]
                         }
                     }

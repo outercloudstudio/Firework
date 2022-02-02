@@ -1,0 +1,19 @@
+func update => {
+    $x = false
+
+    if(rand()) => {
+        $x = true
+    }
+
+    if($x) => {
+        rc("tp ~1 ~ ~")
+        rc("setblock ~ ~ ~ sand")
+        rc("tp ~-1 ~ ~")
+    }
+
+    if(!$x) => {
+        rc("tp ~-1 ~ ~")
+        rc("setblock ~ ~ ~ sand")
+        rc("tp ~1 ~ ~")
+    }
+}

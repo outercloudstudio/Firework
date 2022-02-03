@@ -1,6 +1,14 @@
 const util = require('util')
 const Backend = require('./Backend')
 
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+}
+
 function splitLines(tokens){
     for(let i = 0; i < tokens.length; i++){
         const token = tokens[i]
@@ -175,6 +183,14 @@ function buildCompoundTypes(tokens){
             }
         }
 
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+
+            if(token.token == 'SYMBOL' && token.value == '$'){
+                return new Backend.Error('Unexpected symbol \'$\'!')
+            }
+        }
+
         //Build Molang
         for(let i = 0; i < tokens[l].length; i++){
             const token = tokens[l][i]
@@ -184,6 +200,14 @@ function buildCompoundTypes(tokens){
                 tokens[l].splice(i - 1, 2, { value: token.value, token: 'MOLANG' })
 
                 i--
+            }
+        }
+
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+
+            if(token.token == 'SYMBOL' && token.value == '?'){
+                return new Backend.Error('Unexpected symbol \'?\'!')
             }
         }
 
@@ -219,13 +243,25 @@ function buildExpressions(tokens){
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildExpressions(tokens[l][i].value)
+                const deep = buildExpressions(tokens[l][i].value)
+
+                if(deep instanceof Backend.Error){
+                    return deep
+                }
+
+                tokens[l][i].value = deep
             }
         }
 
         //Build Expression
         for(let i = 0; i < tokens[l].length; i++){
-            tokens[l] = buildExpressionsSingle(tokens[l])
+            const deep = buildExpressionsSingle(tokens[l])
+
+            if(deep instanceof Backend.Error){
+                return deep
+            }
+
+            tokens[l] = deep
         }
     }
 
@@ -241,22 +277,47 @@ function buildExpressionsSingle(tokens){
             let prevToken = tokens[i - 1]
 
             if(!(prevToken && (prevToken.token == 'NAME' || prevToken.token == 'KEYWORD'))){
+                let found = 0;
                 let endingIndex = -1
 
                 for(let j = i + 1; j < tokens.length; j++){
                     const nextToken = tokens[j]
 
-                    if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
-                        endingIndex = j
-                        break;
+                    if(nextToken.token == 'SYMBOL' && nextToken.value == '('){            
+                        found++
+                    }else if(nextToken.token == 'SYMBOL' && nextToken.value == ')'){
+                        if(found == 0){
+                            endingIndex = j
+                            break
+                        }
+                        
+                        found--
                     }
+                }
+
+                if(found > 0 || endingIndex == -1){
+                    return new Backend.Error('Unclosed parantheses!')
                 }
 
                 let insideTokens = tokens.slice(i + 1, endingIndex)
 
                 const paramOut = buildParamsSingle(insideTokens)
 
-                tokens.splice(i, endingIndex - i + 1, buildExpressionsSingle(paramOut)[0])
+                if(paramOut instanceof Backend.Error){
+                    return paramOut
+                }
+
+                const deep = buildExpressionsSingle(paramOut)
+
+                if(deep instanceof Backend.Error){
+                    return deep
+                }
+
+                if(deep.length != 1){
+                    return new Backend.Error('Unresolved symboles:\n' + util.inspect(deep, false, null, false))
+                }
+
+                tokens.splice(i, endingIndex - i + 1, deep[0])
 
                 i--
             }
@@ -271,7 +332,11 @@ function buildExpressionsSingle(tokens){
             let nextToken = tokens[i + 1]
             let prevToken = tokens[i - 1]
 
-            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+            if(prevToken && nextToken){
+                if(!(nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                    return new Backend.Error(`Can not do operation '${token.value}' with '${nextToken.token}' and '${prevToken.token}'!`)
+                }
+
                 tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
 
                 i--
@@ -287,7 +352,11 @@ function buildExpressionsSingle(tokens){
             let nextToken = tokens[i + 1]
             let prevToken = tokens[i - 1]
 
-            if(prevToken && nextToken && (nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+            if(prevToken && nextToken){
+                if(!(nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                    return new Backend.Error(`Can not do operation '${token.value}' with '${nextToken.token}' and '${prevToken.token}'!`)
+                }
+                
                 tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
 
                 i--
@@ -302,7 +371,11 @@ function buildExpressionsSingle(tokens){
         if(token.token == 'SYMBOL' && token.value == '!'){
             let nextToken = tokens[i + 1]
 
-            if(nextToken && (nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG' || nextToken.token == 'BOOLEAN')){
+            if(nextToken){
+                if(!(nextToken.token == 'EXPRESSION' || nextToken.token == 'FLAG' || nextToken.token == 'BOOLEAN' || nextToken.token == 'MOLANG')){
+                    return new Backend.Error(`Can not do operation '${token.value}' with '${nextToken.token}'!`)
+                }
+
                 tokens.splice(i, 2, { value: [token, nextToken], token: 'EXPRESSION' })
             }
         }
@@ -321,28 +394,34 @@ function buildExpressionsSingle(tokens){
                     let nextNextToken = tokens[i + 2]
                     
                     if(token.value == '>' || token.value == '<'){
-                      if((nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                          const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
-                          
-                          tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+                        if(!(nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                            return new Backend.Error(`Can not do operation '${token.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
+                        }
+                        
+                        const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
+                        
+                        tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
 
-                          i--
-                      }
+                        i--
                     }else{
-                      if((nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN')){
-                          const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
-                          
-                          tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
+                        if(!(nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'FLAG' || nextNextToken.token == 'MOLANG') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'FLAG' || prevToken.token == 'MOLANG')){
+                            return new Backend.Error(`Can not do operation '${token.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
+                        }
 
-                          i--
-                      }
-                    }
-                }else if(token.value == '>' || token.value == '<'){
-                    if((nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') && (prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                        tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
+                        const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
+                            
+                        tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' })
 
                         i--
                     }
+                }else if(token.value == '>' || token.value == '<'){
+                    if(!(nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                        return new Backend.Error(`Can not do operation '${token.value}' with '${nextToken.token}' and '${prevToken.token}'!`)
+                    }
+
+                    tokens.splice(i - 1, 3, { value: [token, prevToken, nextToken], token: 'EXPRESSION' })
+
+                    i--
                 }
             }
         }
@@ -357,7 +436,11 @@ function buildExpressionsSingle(tokens){
             let nextNextToken = tokens[i + 2]
             let prevToken = tokens[i - 1]
 
-            if(prevToken && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG') && (prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG')){
+            if(prevToken && nextNextToken){
+                if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG')){
+                    return new Backend.Error(`Can not do operation '${token.value + nextToken.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
+                }
+
                 const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' }
                 
                 tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION'})
@@ -612,14 +695,13 @@ function generateETree(tokens){
     tokens = buildParams(tokens)
 
     tokens = buildExpressions(tokens)
-
-    tokens = buildIfAndDelay(tokens)
+    /*tokens = buildIfAndDelay(tokens)
 
     tokens = buildFunctions(tokens)
 
     for(let l = 0; l < tokens.length; l++){
         tokens[l] = tokens[l][0]
-    }
+    }*/
 
     return tokens
 }

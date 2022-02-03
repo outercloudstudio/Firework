@@ -12,7 +12,7 @@ function Compile(){
   const ETree = ExecutionTree.generateETree(tokens)
 
   if(ETree instanceof Backend.Error){
-    console.log('Error: ' + ETree.message)
+    console.log('\x1b[31m Error: ' + ETree.message + '\x1b[0m')
 
     return
   }

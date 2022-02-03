@@ -314,7 +314,7 @@ function buildExpressionsSingle(tokens){
                 }
 
                 if(deep.length != 1){
-                    return new Backend.Error('Unresolved symboles:\n' + util.inspect(deep, false, null, false))
+                    return new Backend.Error('Unresolved symbols:\n' + util.inspect(deep, false, null, false))
                 }
 
                 tokens.splice(i, endingIndex - i + 1, deep[0])
@@ -491,9 +491,21 @@ function buildParamsSingle(tokens){
                                 }
                             }
 
-                            let parsed = buildParamsSingle(tokens.slice(j - 1, endIndex + 1))[0]
+                            if(opensFound != 0 || endIndex == -1){
+                                return new Backend.Error('Unclosed parantheses!')
+                            }
 
-                            tokens.splice(j - 1, endIndex - j + 2, parsed)
+                            let parsed = buildParamsSingle(tokens.slice(j - 1, endIndex + 1))
+
+                            if(parsed instanceof Backend.Error){
+                                return parsed
+                            }
+
+                            if(parsed.length != 1){
+                                return new Backend.Error('Unresolved symbols:\n' + util.inspect(parsed, false, null, false))
+                            }
+
+                            tokens.splice(j - 1, endIndex - j + 2, parsed[0])
                         }
                     }
                 }
@@ -520,6 +532,10 @@ function buildParamsSingle(tokens){
                     }
                 }
 
+                if(opensFound != 0 || endIndex == -1){
+                    return new Backend.Error('Unclosed parantheses!')
+                }
+
                 //Build Expressions Between Commas
                 let groups = []
                 let lastGroupPos = i
@@ -528,16 +544,33 @@ function buildParamsSingle(tokens){
                     const goalToken = tokens[k]
 
                     if(goalToken.token == 'SYMBOL' && goalToken.value == ','){
-                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))[0]
-                        groups.push(group)
+                        let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, k))
+
+                        if(group instanceof Backend.Error){
+                            return parsed
+                        }
+
+                        if(group.length != 1){
+                            return new Backend.Error('Unresolved symbols:\n' + util.inspect(group, false, null, false))
+                        }
+
+                        groups.push(group[0])
 
                         lastGroupPos = k
                     }
                 }
 
-                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))[0]
+                let group = buildExpressionsSingle(tokens.slice(lastGroupPos + 1, endIndex))
 
-                groups.push(group)
+                if(group instanceof Backend.Error){
+                    return parsed
+                }
+
+                if(group.length != 1){
+                    return new Backend.Error('Unresolved symbols:\n' + util.inspect(group, false, null, false))
+                }
+
+                groups.push(group[0])
 
                 groups.unshift(prevToken)
 
@@ -554,11 +587,23 @@ function buildParams(tokens){
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildParams(tokens[l][i].value)
+                const deep = buildParams(tokens[l][i].value)
+
+                if(deep instanceof Backend.Error){
+                    return deep
+                }
+
+                tokens[l][i].value = deep
             }
         }
 
-        tokens[l] = buildParamsSingle(tokens[l])
+        const deepOut = buildParamsSingle(tokens[l])
+
+        if(deepOut instanceof Backend.Error){
+            return deepOut
+        }
+
+        tokens[l] = deepOut
     }
 
     return tokens
@@ -573,7 +618,26 @@ function buildAsignments(tokens){
             const nextNextToken = tokens[l][i + 2]
             const nextNextNextToken = tokens[l][i + 3]
 
-            if(token.token == 'KEYWORD' && (token.value == 'dyn' || token.value == 'const') && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken && (nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'MOLANG' || nextNextNextToken.token == 'EXPRESSION')){
+            if(token.token == 'KEYWORD' && token.value == 'dyn' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken){
+                if(!(nextNextNextToken.token == 'MOLANG' || nextNextNextToken.token == 'EXPRESSION')){
+                    return new Backend.Error(`Dynamic can't be assigned to ${nextNextNextToken.token}!`)
+                }
+
+                tokens[l].splice(i, 4, { value: [token, nextToken, nextNextNextToken], token: 'ASSIGN' })
+            }
+        }
+
+        for(let i = 0; i < tokens[l].length; i++){
+            const token = tokens[l][i]
+            const nextToken = tokens[l][i + 1]
+            const nextNextToken = tokens[l][i + 2]
+            const nextNextNextToken = tokens[l][i + 3]
+
+            if(token.token == 'KEYWORD' && token.value == 'dyn' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken){
+                if(!(nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'EXPRESSION')){
+                    return new Backend.Error(`Constant can't be assigned to ${nextNextNextToken.token}!`)
+                }
+
                 tokens[l].splice(i, 4, { value: [token, nextToken, nextNextNextToken], token: 'ASSIGN' })
             }
         }
@@ -587,7 +651,13 @@ function buildIfAndDelay(tokens){
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildIfAndDelay(tokens[l][i].value)
+                const deep = buildIfAndDelay(tokens[l][i].value)
+
+                if(deep instanceof Backend.Error){
+                    return deep
+                }
+
+                tokens[l][i].value = deep
             }
         }
 
@@ -600,7 +670,11 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
-            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && (nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'CALL') && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+            if(token.token == 'KEYWORD' && token.value == 'if' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+                if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'NAME' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'CALL')){
+                    return new Backend.Error(`If condition can't be ${nextNextToken.token}!`)
+                }
+                
                 for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
                     nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
                 }
@@ -617,7 +691,11 @@ function buildIfAndDelay(tokens){
             const nextNextNextNextToken = tokens[l][i + 4]
             const nextNextNextNextNextToken = tokens[l][i + 5]
 
-            if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && nextNextToken.token == 'INTEGER' && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+            if(token.token == 'KEYWORD' && token.value == 'delay' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '(' && nextNextToken && nextNextNextToken && nextNextNextToken.token == 'SYMBOL' && nextNextNextToken.value == ')' && nextNextNextNextToken && nextNextNextNextToken.token == 'ARROW' && nextNextNextNextNextToken && nextNextNextNextNextToken.token == 'BLOCK'){
+                if(nextNextToken.token != 'INTEGER'){
+                    return new Backend.Error(`Delay must be an integer!`)
+                }
+                
                 for(let j = 0; j < nextNextNextNextNextToken.value.length; j++){
                     nextNextNextNextNextToken.value[j] = nextNextNextNextNextToken.value[j][0]
                 }
@@ -656,7 +734,13 @@ function buildFlagAssignments(tokens){
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildFlagAssignments(tokens[l][i].value)
+                let deep = buildFlagAssignments(tokens[l][i].value)
+
+                if(deep instanceof Backend.Error){
+                    return deep
+                }
+
+                tokens[l][i].value = deep
             }
         }
 
@@ -666,7 +750,11 @@ function buildFlagAssignments(tokens){
             const nextToken = tokens[l][i + 1]
             const nextNextToken = tokens[l][i + 2]
 
-            if(token.token == 'FLAG' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '=' && nextNextToken && nextNextToken.token == 'BOOLEAN'){
+            if(token.token == 'FLAG' && nextToken && nextToken.token == 'SYMBOL' && nextToken.value == '=' && nextNextToken){
+                if(nextNextToken.token != 'BOOLEAN'){
+                    return new Backend.Error('Can\'t assign flag to ' + nextNextToken.token + '!')
+                }
+                
                 tokens[l].splice(i, 3, { value: [token, nextNextToken], token: 'ASSIGN' })
             }
         }
@@ -690,18 +778,49 @@ function generateETree(tokens){
       return tokens
     }
 
-    tokens = buildFlagAssignments(tokens)
-
     tokens = buildParams(tokens)
 
+    if(tokens instanceof Backend.Error){
+        return tokens
+    }
+
     tokens = buildExpressions(tokens)
-    /*tokens = buildIfAndDelay(tokens)
+
+    if(tokens instanceof Backend.Error){
+        return tokens
+    }
+
+    tokens = buildFlagAssignments(tokens)
+
+    if(tokens instanceof Backend.Error){
+        return tokens
+    }
+
+    tokens = buildAsignments(tokens)
+
+    if(tokens instanceof Backend.Error){
+        return tokens
+    }
+
+    tokens = buildIfAndDelay(tokens)
+
+    if(tokens instanceof Backend.Error){
+        return tokens
+    }
 
     tokens = buildFunctions(tokens)
 
+    if(tokens instanceof Backend.Error){
+      return tokens
+    }
+
     for(let l = 0; l < tokens.length; l++){
+        if(tokens[l].length != 1){
+            return new Backend.Error('Unresolved symbols:\n' + util.inspect(tokens[l], false, null, false))
+        }
+
         tokens[l] = tokens[l][0]
-    }*/
+    }
 
     return tokens
 }

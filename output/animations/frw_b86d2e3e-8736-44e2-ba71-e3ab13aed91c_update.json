@@ -1,11 +1,11 @@
 {
     "format_version": "1.10.0",
     "animations": {
-        "animation.firework.runtime.10238766-37ff-489e-967f-6c05f3667368.inverse": {
+        "animation.firework.runtime.b86d2e3e-8736-44e2-ba71-e3ab13aed91c.update": {
             "loop": true,
             "timeline": {
                 "0.0": [
-                    "/tag @s remove frw_conditional_10238766-37ff-489e-967f-6c05f3667368"
+                    "/event entity @s frw:update"
                 ]
             },
             "animation_length": 0.001

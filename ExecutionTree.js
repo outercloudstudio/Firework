@@ -633,7 +633,7 @@ function buildAsignments(tokens){
             const nextNextToken = tokens[l][i + 2]
             const nextNextNextToken = tokens[l][i + 3]
 
-            if(token.token == 'KEYWORD' && token.value == 'dyn' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken){
+            if(token.token == 'KEYWORD' && token.value == 'const' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken){
                 if(!(nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'EXPRESSION')){
                     return new Backend.Error(`Constant can't be assigned to ${nextNextNextToken.token}!`)
                 }

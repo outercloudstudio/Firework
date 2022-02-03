@@ -1,7 +1,6 @@
 const util = require('util')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
-const Firework = require('./Firework')
 const Backend = require('./Backend')
 
 function compile(tree){
@@ -132,67 +131,67 @@ function compile(tree){
         }else{
             if(expression.value[0].value == '+'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) + parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
             }else if(expression.value[0].value == '-'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) - parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
             }else if(expression.value[0].value == '*'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) * parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
             }else if(expression.value[0].value == '+'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) / parseInt(expression.value[2].value)).toString(), token: 'FLOAT' }
             }else if(expression.value[0].value == '>'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) > parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '<'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) < parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '>='){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) >= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '<='){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) <= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '&&'){
                 if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (expression.value[1].value == 'true' && expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '||'){
                 if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (expression.value[1].value == 'true' || expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '!'){
                 if(!(expression.value[1].token == 'BOOLEAN')){
-                    return new Firework.Error(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}!`)
+                    return new Backend.Error(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}!`)
                 }
 
                 expression = { value: (expression.value[1].value != 'true').toString(), token: 'BOOLEAN' }
@@ -212,7 +211,7 @@ function compile(tree){
         if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
             const deep = searchForExpression(tree.value[1].value)
             
-            if(deep instanceof Firework.Error){
+            if(deep instanceof Backend.Error){
                 return deep
             }
 
@@ -221,7 +220,7 @@ function compile(tree){
             if(tree.value[2].token == 'EXPRESSION'){
                 const deep = optimizeExpression(tree.value[2])
 
-                if(deep instanceof Firework.Error){
+                if(deep instanceof Backend.Error){
                     return deep
                 }
 
@@ -232,7 +231,7 @@ function compile(tree){
                 if(tree.value[i].token == 'EXPRESSION'){
                     const deep = optimizeExpression(tree.value[i])
 
-                    if(deep instanceof Firework.Error){
+                    if(deep instanceof Backend.Error){
                         return deep
                     }
 
@@ -248,7 +247,7 @@ function compile(tree){
         for(let i = 0; i < block.value.length; i++){
             const deep = searchForCodeBlock(block.value[i])
 
-            if(deep instanceof Firework.Error){
+            if(deep instanceof Backend.Error){
                 return deep
             }
 
@@ -264,7 +263,7 @@ function compile(tree){
         if(mode == 'conditional'){
             const deep = expressionToMolang(condition)
 
-            if(deep instanceof Firework.Error){
+            if(deep instanceof Backend.Error){
                 return deep
             }
 
@@ -282,11 +281,11 @@ function compile(tree){
 
     function indexConstant(token){
         if(token.value[2].token == 'EXPRESSION' || token.value[2].dynamic){
-            return new Firework.Error(`Can not assign dyncamic value to const ${token.value[1].value}!`)
+            return new Backend.Error(`Can not assign dyncamic value to const ${token.value[1].value}!`)
         }
 
         if(constants[token.value[1].value]){
-            return new Firework.Error(`Can not initialize constant ${token.value[1].value} more than once!`)
+            return new Backend.Error(`Can not initialize constant ${token.value[1].value} more than once!`)
         }
 
         constants[token.value[1].value] = token.value[2]
@@ -296,7 +295,7 @@ function compile(tree){
         if(tree.token == 'DEFINITION'){
             const deep = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
 
-            if(deep instanceof Firework.Error){
+            if(deep instanceof Backend.Error){
                 return deep
             }
 
@@ -304,7 +303,7 @@ function compile(tree){
         }else if(tree.token == 'IF'){
             const deep = indexCodeBlock(tree.value[1], 'conditional', tree.value[0])
 
-            if(deep instanceof Firework.Error){
+            if(deep instanceof Backend.Error){
                 return deep
             }
 
@@ -312,7 +311,7 @@ function compile(tree){
         }else if(tree.token == 'DELAY'){
             const deep = indexCodeBlock(tree.value[1], 'delay')
 
-            if(deep instanceof Firework.Error){
+            if(deep instanceof Backend.Error){
                 return deep
             }
 
@@ -334,7 +333,7 @@ function compile(tree){
             if(tree.value[0].token == 'EXPRESSION'){
                 const deep = searchForFlags(tree.value[0])
 
-                if(deep instanceof Firework.Error){
+                if(deep instanceof Backend.Error){
                     return deep
                 }
 
@@ -346,7 +345,7 @@ function compile(tree){
             for(let i = 0; i < tree.value[1].value.length; i++){
                 const deep = searchForFlags(tree.value[1].value[i])
 
-                if(deep instanceof Firework.Error){
+                if(deep instanceof Backend.Error){
                     return deep
                 }
 
@@ -362,7 +361,7 @@ function compile(tree){
     for(let i = 0; i < tree.length; i++){
         const deep = searchForExpression(tree[i])
 
-        if(deep instanceof Firework.Error){
+        if(deep instanceof Backend.Error){
             return deep
         }
 
@@ -374,7 +373,7 @@ function compile(tree){
             if(tree[i].value[0].value == 'const'){
                 const deep = indexConstant(tree[i])
 
-                if(deep instanceof Firework.Error){
+                if(deep instanceof Backend.Error){
                     return deep
                 }
             }
@@ -384,7 +383,7 @@ function compile(tree){
     for(let i = 0; i < tree.length; i++){
         const deep = searchForCodeBlock(tree[i])
 
-        if(deep instanceof Firework.Error){
+        if(deep instanceof Backend.Error){
             return deep
         }
 
@@ -394,7 +393,7 @@ function compile(tree){
     for(let i = 0; i < tree.length; i++){
         const deep = searchForFlags(tree[i])
 
-        if(deep instanceof Firework.Error){
+        if(deep instanceof Backend.Error){
             return deep
         }
 

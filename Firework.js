@@ -17,7 +17,13 @@ function Compile(){
     return
   }
 
-  //Compiler.compile(ETree)
+  const compiled = Compiler.compile(ETree)
+
+  if(compiled instanceof Backend.Error){
+    console.log('\x1b[31m Error: ' + compiled.message + '\x1b[0m')
+
+    return
+  }
 }
 
 module.exports = { Compile };

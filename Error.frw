@@ -1,5 +1,13 @@
-const a = 
-
-func start => {
-  rc("say hoi")
+func update => {
+  if($right) => {
+    rc("setblock ~ ~2 ~ air")
+    rc("tp ~0.05 ~ ~")
+    rc("setblock ~ ~2 ~ deepslate_diamond_ore")
+  }
+  if($left) => {
+    rc("setblock ~ ~2 ~ air")
+    rc("tp ~-0.05 ~ ~")
+    rc("setblock ~ ~2 ~ deepslate_diamond_ore")
+  }
+  rc("setblock ~ ~2 ~ deepslate_diamond_ore")
 }

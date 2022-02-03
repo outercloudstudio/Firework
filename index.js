@@ -1,12 +1,3 @@
-const util = require('util')
-const fs = require('fs')
+const Firework = require('./Firework')
 
-const Tokenizer = require('./Tokenizer')
-const ExecutionTree = require('./ExecutionTree')
-const Compiler = require('./Compiler')
-
-const tokens = Tokenizer.tokenize(fs.readFileSync('./Gen.frw').toString())
-
-const ETree = ExecutionTree.generateETree(tokens)
-
-const Output = Compiler.compile(ETree)
+Firework.Compile()

@@ -1,3 +1,5 @@
+const Backend = require('./Backend')
+
 function isInteger(str){
     if(typeof str != 'string') return false
 

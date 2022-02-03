@@ -1,12 +1,5 @@
 const util = require('util')
-
-function sleep(milliseconds) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-      currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-}
+const Backend = require('./Backend')
 
 function splitLines(tokens){
     for(let i = 0; i < tokens.length; i++){
@@ -89,6 +82,10 @@ function buildCodeBlocks(tokens){
         }
     }
 
+    if(openPaths.length > 0){
+      return new Backend.Error('Unclosed \'{\'!')
+    }
+
     return tokens
 }
 
@@ -100,7 +97,13 @@ function buildCompoundTypes(tokens){
         //Go Deeper Into Blocks
         for(let i = 0; i < tokens[l].length; i++){
             if(tokens[l][i].token == 'BLOCK'){
-                tokens[l][i].value = buildCompoundTypes(tokens[l][i].value)
+                const deep = buildCompoundTypes(tokens[l][i].value)
+
+                if(deep instanceof Backend.Error){
+                  return deep
+                }
+
+                tokens[l][i].value = deep
             }
         }
 
@@ -139,6 +142,10 @@ function buildCompoundTypes(tokens){
 
                 l--
             }
+        }
+
+        if(inString){
+          return new Backend.Error('Unclosed string!')
         }
 
         //Combine Numbers
@@ -590,7 +597,15 @@ function generateETree(tokens){
     
     tokens = buildCodeBlocks(tokens)
 
+    if(tokens instanceof Backend.Error){
+      return tokens
+    }
+
     tokens = buildCompoundTypes(tokens)
+
+    if(tokens instanceof Backend.Error){
+      return tokens
+    }
 
     tokens = buildFlagAssignments(tokens)
 

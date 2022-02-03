@@ -7,15 +7,16 @@ const Firework = require('./Firework')
 function compile(tree){
     //console.log(util.inspect(tree, false, null, true /* enable colors */))
 
-    fs.copyFileSync('./world_runtime_template.json', './world_runtime.json')
+    fs.copyFileSync('./data/world_runtime_template.json', './output/world_runtime.json')
 
-    if(fs.existsSync('./animations')){
-        fs.rmSync('./animations', { recursive: true })
+    if(fs.existsSync('./output')){
+        fs.rmSync('./output', { recursive: true })
     }
 
-    fs.mkdirSync('./animations')
+    fs.mkdirSync('./output')
+    fs.mkdirSync('./output/animations')
 
-    let worldRuntime = JSON.parse(fs.readFileSync('./world_runtime.json').toString())
+    let worldRuntime = JSON.parse(fs.readFileSync('./output/world_runtime.json').toString())
 
     let blocks = {}
 
@@ -28,9 +29,6 @@ function compile(tree){
     let flags = []
 
     function expressionToMolang(expression){
-        console.log('EXP TO MOL: ' + expression.token)
-        console.log(util.inspect(expression, false, null, true /* enable colors */))
-
         let result = ''
 
         if(expression.token == 'INTEGER' || expression.token == 'BOOLEAN'){
@@ -47,19 +45,14 @@ function compile(tree){
             result = `q.actor_property('frw:${expression.value}')`
         }else if(expression.token == 'CALL'){
             if(expression.value[0].value == 'rand'){
-                console.log('GOT RAND')
                 result = `(math.die_roll(1, 0, 1) > 0.45)`
             }
         }
-
-        console.log('RET: ' + result)
 
         return result
     }
 
     function optimizeExpression(expression){
-        console.log('OPTOMIZE: ' + expression.token)
-
         let dynamic = false
 
         if(expression.token == 'SYMBOL' && (expression.value[0].value == '+' || expression.value[0].value == '-' || expression.value == '*'[0].value || expression.value == '/'[0].value || expression.value[0].value == '&&' || expression.value[0].value == '||' || expression.value[0].value == '==' || expression.value[0].value == '>' || expression.value[0].value == '<' || expression.value[0].value == '>=' || expression.value[0].value == '<=')){
@@ -105,77 +98,66 @@ function compile(tree){
         }else{
             if(expression.value[0].value == '+'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) + parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
             }else if(expression.value[0].value == '-'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) - parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
             }else if(expression.value[0].value == '*'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) * parseInt(expression.value[2].value)).toString(), token: 'INTEGER' }
             }else if(expression.value[0].value == '+'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) / parseInt(expression.value[2].value)).toString(), token: 'FLOAT' }
             }else if(expression.value[0].value == '>'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) > parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '<'){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) < parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '>='){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) >= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '<='){
                 if(!(expression.value[1].token == 'INTEGER' && expression.value[2].token == 'INTEGER')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (parseInt(expression.value[1].value) <= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '&&'){
                 if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (expression.value[1].value == 'true' && expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '||'){
                 if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
-                    console.log(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}`)
                 }
 
                 expression = { value: (expression.value[1].value == 'true' || expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '!'){
                 if(!(expression.value[1].token == 'BOOLEAN')){
-                    console.log(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}`)
                     return new Firework.Error(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}`)
                 }
 
@@ -233,19 +215,15 @@ function compile(tree){
 
         block = { value: [ID, mode], token: 'BLOCKREF'}
 
-        console.log('INDEXED BLOCK: ' + ID)
-
         return block
     }
 
     function indexConstant(token){
         if(token.value[2].token == 'EXPRESSION' || token.value[2].dynamic){
-            console.log(`Can not assign dyncamic value to const ${token.value[1].value}!`)
             return new Firework.Error(`Can not assign dyncamic value to const ${token.value[1].value}!`)
         }
 
         if(constants[token.value[1].value]){
-            console.log(`Can not initialize constant ${token.value[1].value} more than once!`)
             return new Firework.Error(`Can not initialize constant ${token.value[1].value} more than once!`)
         }
 
@@ -363,7 +341,7 @@ function compile(tree){
             "animation_length": 0.001
         }
 
-        fs.writeFileSync('./animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
+        fs.writeFileSync('./output/animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
 
         worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i]] = 'animation.firework.runtime.' + dynamicValueNames[i]
 
@@ -388,7 +366,7 @@ function compile(tree){
             "animation_length": 0.001
         }
 
-        fs.writeFileSync('./animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
+        fs.writeFileSync('./output/animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
 
         worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i] + '_inverse'] = 'animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'
 
@@ -498,11 +476,11 @@ function compile(tree){
         "animation_length": 0.001
     }
 
-    fs.writeFileSync('./animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
+    fs.writeFileSync('./output/animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
 
     worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
 
-    fs.writeFileSync('./world_runtime.json', JSON.stringify(worldRuntime, null, 4))
+    fs.writeFileSync('./output/world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }
 
 module.exports = { compile }

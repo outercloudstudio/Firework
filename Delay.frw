@@ -1,5 +1,5 @@
 func start => {
-  delay(10) => {
+  delay(-10) => {
     rc("say 1")
 
     delay(10) => {

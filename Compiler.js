@@ -278,6 +278,10 @@ function compile(tree){
                 return new Backend.Error(`Delay must be an integer!`)
             }
 
+            if(parseInt(condition.value) <= 0){
+                return new Backend.Error(`Delay must be greater than 0!`)
+            }
+
             delays[ID] = parseInt(condition.value)
         }
 
@@ -302,7 +306,6 @@ function compile(tree){
 
     function searchForCodeBlock(tree){
         if(tree.token == 'DEFINITION'){
-            console.log('INDEXING DEFINITION ' + tree.value[0].value)
             const deep = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
 
             if(deep instanceof Backend.Error){
@@ -319,7 +322,6 @@ function compile(tree){
 
             tree.value[1] = deep
         }else if(tree.token == 'DELAY'){
-            console.log('INDEXING DELAY')
             const deep = indexCodeBlock(tree.value[1], 'delay', tree.value[0])
 
             if(deep instanceof Backend.Error){
@@ -548,11 +550,7 @@ function compile(tree){
                             ]
                         }
                     })
-                }else if(blocks[blockNames[i]][l].value[1].value[1] == 'delay'){
-                    console.log(blocks[blockNames[i]][l].value[1].value[0])
-                    console.log('CREATING DELAY ' + blocks[blockNames[i]][l].value[1].value[0])
-                    console.log('CREATING DELAY OF ' + delays[blocks[blockNames[i]][l].value[1].value[0]].toString())
-                    
+                }else if(blocks[blockNames[i]][l].value[1].value[1] == 'delay'){           
                     //Delay Intialization
                     data.sequence.push({
                         run_command: {

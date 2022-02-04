@@ -1,4 +1,32 @@
-# Implemented Features
+# Examples
+## Basic Script
+This script runns every tick and places a block at the entities position.
+```
+func update => {
+    rc("setblock ~ ~ ~ deepslate_diamond_ore")
+}
+```
+## Random Block
+This script sets diamonds to a random true or false value. Then, if the diamonds flag is true then place diamond ore, else place iron ore.
+```
+func update => {
+    $diamonds = false
+
+    if(rand()) => {
+        $diamonds = true
+    }
+
+    if($diamonds) => {
+        rc("setblock ~ ~ ~ deepslate_diamond_ore")
+    }
+
+    if(!$diamonds) => {
+        rc("setblock ~ ~ ~ deepslate_iron_ore")
+    }
+}
+```
+
+# Roadmap
 ## Constants ✔️
 ## Tags ✔️
 - Reading ✔️
@@ -18,5 +46,3 @@
     Done by continously calling the code block until the condition is false.
 ## For Loops ➡️
     Done by counting down a variable like delay but without waiting.
-
-⚠️✔️➡️

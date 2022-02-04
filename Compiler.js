@@ -531,6 +531,8 @@ function compile(tree){
                                 ]
                             }
                         })
+                    }else{
+                        return new Backend.Error(`Attemped to call undefined method ${blocks[blockNames[i]][l].value[0].value}!`)
                     }
                 }
             }else if(blocks[blockNames[i]][l].token == 'DEFINITION' || blocks[blockNames[i]][l].token == 'IF' || blocks[blockNames[i]][l].token == 'DELAY'){

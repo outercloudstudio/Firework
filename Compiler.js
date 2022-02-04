@@ -2,11 +2,10 @@ const util = require('util')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const Backend = require('./Backend')
+const config = require('./data/config')
 
 function compile(tree){
     //console.log(util.inspect(tree, false, null, true /* enable colors */))
-
-    fs.copyFileSync('./data/world_runtime_template.json', './output/world_runtime.json')
 
     if(fs.existsSync('./output')){
         fs.rmSync('./output', { recursive: true })
@@ -15,17 +14,21 @@ function compile(tree){
     fs.mkdirSync('./output')
     fs.mkdirSync('./output/animations')
 
+    fs.copyFileSync('./data/world_runtime_template.json', './output/world_runtime.json')
+
     let worldRuntime = JSON.parse(fs.readFileSync('./output/world_runtime.json').toString())
 
     let blocks = {}
 
-    let dynamicVariables = {}
+    let delays = {}
 
     let dynamicValues = {}
 
     let constants = {}
 
     let flags = []
+
+    let delaySteps = []
 
     function expressionToMolang(expression){
         let result = ''
@@ -270,6 +273,12 @@ function compile(tree){
             dynamicValues[ID] = {
                 condition: deep
             }
+        }else if(mode == 'delay'){
+            if(condition.token != 'INTEGER'){
+                return new Backend.Error(`Delay must be an integer!`)
+            }
+
+            delays[ID] = parseInt(condition.value)
         }
 
         blocks[ID] = block.value
@@ -293,6 +302,7 @@ function compile(tree){
 
     function searchForCodeBlock(tree){
         if(tree.token == 'DEFINITION'){
+            console.log('INDEXING DEFINITION ' + tree.value[0].value)
             const deep = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
 
             if(deep instanceof Backend.Error){
@@ -309,7 +319,8 @@ function compile(tree){
 
             tree.value[1] = deep
         }else if(tree.token == 'DELAY'){
-            const deep = indexCodeBlock(tree.value[1], 'delay')
+            console.log('INDEXING DELAY')
+            const deep = indexCodeBlock(tree.value[1], 'delay', tree.value[0])
 
             if(deep instanceof Backend.Error){
                 return deep
@@ -538,13 +549,78 @@ function compile(tree){
                         }
                     })
                 }else if(blocks[blockNames[i]][l].value[1].value[1] == 'delay'){
+                    console.log(blocks[blockNames[i]][l].value[1].value[0])
+                    console.log('CREATING DELAY ' + blocks[blockNames[i]][l].value[1].value[0])
+                    console.log('CREATING DELAY OF ' + delays[blocks[blockNames[i]][l].value[1].value[0]].toString())
+                    
+                    //Delay Intialization
                     data.sequence.push({
                         run_command: {
                             command: [
-                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
+                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_trigger'
                             ]
                         }
                     })
+
+                    //Delay Triggering
+                    for(let j = 0; j < config.delayChannels; j++){
+                        let channelData = {
+                            run_command: {
+                                command: [
+                                    `/tag @s add frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${delays[blocks[blockNames[i]][l].value[1].value[0]]}_channel_${j}`,
+                                    '/tag @s add added'
+                                ]
+                            }
+                        }
+
+                        worldRuntime['minecraft:entity'].events['frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_channel_' + j.toString()] = channelData
+                    }
+
+                    //Delay Channel Choosing
+                    let delayCallData = {
+                        run_command: {
+                            command: [
+                            ]
+                        }
+                    }
+
+                    for(let j = 0; j < config.delayChannels; j++){
+                        delayCallData.run_command.command.push(`/event entity @s[tag=!added, tag=!frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${delays[blocks[blockNames[i]][l].value[1].value[0]]}_channel_${j}] ${'frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_channel_' + j.toString()}`)
+                    }
+
+                    delayCallData.run_command.command.push(`/tag @s remove added`)
+
+                    worldRuntime['minecraft:entity'].events['frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_trigger'] = delayCallData
+
+                    //Delay Stepping
+                    for(let j = 0; j < config.delayChannels; j++){
+                        for(let k = delays[blocks[blockNames[i]][l].value[1].value[0]]; k > 0; k--){
+                            let timeData = {
+                                run_command: {
+                                    command: [
+                                        `/tag @s remove frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k}_channel_${j}`,
+                                        `/tag @s add frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k - 1}_channel_${j}`
+                                    ]
+                                }
+                            }
+
+                            if(k == 1){
+                                timeData.run_command.command = [
+                                    `/tag @s remove frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k}_channel_${j}`,
+                                    `/event entity @s frw:${blocks[blockNames[i]][l].value[1].value[0]}`
+                                ]
+                            }
+    
+                            worldRuntime['minecraft:entity'].events['frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()] = timeData
+                        }
+                    }
+
+                    //Add Delay Stepping
+                    for(let j = 0; j < config.delayChannels; j++){
+                        for(let k = delays[blocks[blockNames[i]][l].value[1].value[0]]; k > 0; k--){
+                            delaySteps.unshift(`/event entity @s[tag=frw_${blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()}] ${'frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()}`)
+                        }
+                    }
                 }
             }else if(blocks[blockNames[i]][l].token == 'ASSIGN'){
                 if(blocks[blockNames[i]][l].value[1].value == 'true'){
@@ -574,6 +650,12 @@ function compile(tree){
         worldRuntime['minecraft:entity'].events['frw:' + blockNames[i]] = data
     }
 
+    worldRuntime['minecraft:entity'].events['frwb:delay'] = {
+        run_command: {
+            command: delaySteps
+        }
+    }
+
     let updateData = {
         "format_version": "1.10.0",
         "animations": {}
@@ -591,9 +673,23 @@ function compile(tree){
         "animation_length": 0.001
     }
 
+    const delayID = uuidv4()
+
+    updateData.animations['animation.firework.runtime.' + delayID + '.delay'] = {
+        "loop": true,
+        "timeline": {
+            "0.0": [
+                `/event entity @s frwb:delay`
+            ]
+        },
+        "animation_length": 0.1
+    }
+
     fs.writeFileSync('./output/animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
 
     worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
+    worldRuntime['minecraft:entity'].description.animations['frw_delay'] = 'animation.firework.runtime.' + delayID + '.delay'
+
 
     fs.writeFileSync('./output/world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }

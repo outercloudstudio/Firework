@@ -10,7 +10,8 @@
 			"animations": {},
 			"scripts": {
 				"animate": [
-					"frw_update"
+					"frw_update",
+					"frw_delay"
 				]
 			}
 		},

@@ -7,7 +7,7 @@ const Compiler = require('./Compiler')
 const Backend = require('./Backend')
 
 function Compile(){
-  const tokens = Tokenizer.tokenize(fs.readFileSync('./Error.frw').toString())
+  const tokens = Tokenizer.tokenize(fs.readFileSync('./Delay.frw').toString())
 
   const ETree = ExecutionTree.generateETree(tokens)
 

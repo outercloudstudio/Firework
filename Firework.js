@@ -30,7 +30,7 @@ import { createSpinner } from 'nanospinner'
   }
 }*/
 
-function CompileFile(source, path, endPath){
+function CompileFile(source, path, endPath, config){
   //console.log('Compiling entity from ' + source + ' to ' + endPath + ' with ' + path)
 
   const tokens = Tokenizer.Tokenize(fs.readFileSync(path).toString())
@@ -41,7 +41,11 @@ function CompileFile(source, path, endPath){
     return ETree
   }
 
-  console.log(ETree)
+  const compiled = Compiler.Compile(ETree, config, source, endPath)
+
+  if(compiled instanceof Backend.Error){
+    return compiled
+  }
 }
 
 function sleep(ms) {
@@ -92,45 +96,56 @@ export async function Start(path, com){
       if(!mainfest.firework || forced){
         console.log(chalk.hex('#ffc825').bold('Warning:') + ' Detected recompile!')
 
-        forced = false
-
-        mainfest.firework = {
-
+        //Create intial files
+        if(!fs.existsSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/')){
+          fs.mkdirSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/')
         }
 
-        if(fs.existsSync(com + '/development_behavior_packs/' + projectName + ' BP/entities/')){
-          //Find entity .frw files
-          let files = []
-          let fileRelPaths = []
+        if(!fs.existsSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/tick.json')){
+          fs.writeFileSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/tick.json', JSON.stringify({
+            values: [
+              'firework_runtime'
+            ]
+          }, null, 2))
+        }
 
-          function searchFolderForEntity(dir){
-            let foundFiles = getFiles(dir)
+        fs.copyFileSync('./data/firework_runtime.mcfunction', com + '/development_behavior_packs/' + projectName + ' BP/functions/firework_runtime.mcfunction')
 
-            for(let i = 0; i < foundFiles.length; i++){
-              if(foundFiles[i].endsWith('.json')){
-                files.push(foundFiles[i])
-                fileRelPaths.push(dir.substring((com + '/development_behavior_packs/' + projectName + ' BP/entities').length))
-              }
-            }
+        if(!fs.existsSync(com + '/development_behavior_packs/' + projectName + ' BP/animations/')){
+          fs.mkdirSync(com + '/development_behavior_packs/' + projectName + ' BP/animations/')
+        }
 
-            const directories = getDirectories(dir)
+        //Find entity .frw files
+        let files = []
+        let fileRelPaths = []
 
-            for(let i = 0; i < directories.length; i++){
-              searchFolderForEntity(dir + '/' + directories[i])
+        function searchFolderForEntity(dir){
+          let foundFiles = getFiles(dir)
+
+          for(let i = 0; i < foundFiles.length; i++){
+            if(foundFiles[i].endsWith('.json')){
+              files.push(foundFiles[i])
+              fileRelPaths.push(dir.substring((com + '/development_behavior_packs/' + projectName + ' BP/entities').length))
             }
           }
 
-          searchFolderForEntity(com + '/development_behavior_packs/' + projectName + ' BP/entities')
+          const directories = getDirectories(dir)
 
-          console.log(files)
+          for(let i = 0; i < directories.length; i++){
+            searchFolderForEntity(dir + '/' + directories[i])
+          }
+        }
 
-          for(let i = 0; i < files.length; i++){
-            const targetFileName = files[i].substring(0, files[i].length - 5) + '.frw'
-            const targetFilePath = com + '/development_behavior_packs/' + projectName + ' BP/firework/' + fileRelPaths[i] + targetFileName
-            const sourceFilePath = com + '/development_behavior_packs/' + projectName + ' BP/enities/' + fileRelPaths[i] + files[i]
+        searchFolderForEntity(com + '/development_behavior_packs/' + projectName + ' BP/entities')
 
+        for(let i = 0; i < files.length; i++){
+          const targetFileName = files[i].substring(0, files[i].length - 5) + '.frw'
+          const targetFilePath = com + '/development_behavior_packs/' + projectName + ' BP/firework/' + fileRelPaths[i] + targetFileName
+          const sourceFilePath = com + '/development_behavior_packs/' + projectName + ' BP/entities/' + fileRelPaths[i] + files[i]
+
+          if(fs.existsSync(sourceFilePath)){
             if(fs.existsSync(targetFilePath)){
-              const result = CompileFile(sourceFilePath, targetFilePath, com + '/development_behavior_packs/' + projectName + ' BP/enities/' + fileRelPaths[i] + files[1])
+              const result = CompileFile(sourceFilePath, targetFilePath, com + '/development_behavior_packs/' + projectName + ' BP', JSON.parse(fs.readFileSync(path + '/.firework/config.json')))
 
               if(result instanceof Backend.Error){
                 console.log(chalk.hex('#ea323c').bold('Error:') + ' ' + result.message)
@@ -140,11 +155,18 @@ export async function Start(path, com){
                 console.log(chalk.hex('#5ac54f').bold(`Compiled ${targetFileName}!`))
               }
             }else{
-              console.log(chalk.hex('#ffc825').bold('Warning:') +  ' Could not find file for ' + files[i])
+              //console.log(chalk.hex('#ffc825').bold('Warning:') +  ' Could not find file for ' + targetFileName)
             }
+          }else{
+            //console.log(chalk.hex('#ffc825').bold('Warning:') +  ' Could not find file for ' + files[i])
           }
-        }else{
-          console.log(chalk.hex('#ffc825').bold('Warning:') + ' Could not find entities folder!')
+        }
+
+        //Update manifest
+        forced = false
+
+        mainfest.firework = {
+
         }
 
         fs.writeFileSync(com + '/development_behavior_packs/' + projectName + ' BP/manifest.json', JSON.stringify(mainfest, null, 2))

@@ -2,21 +2,34 @@ import * as util from 'util'
 import * as fs from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import * as Backend from './Backend.js'
-import * as config from './data/config.json'
 
-export function compile(tree){
+export function Compile(tree, config, source, path){
     //console.log(util.inspect(tree, false, null, true /* enable colors */))
 
-    if(fs.existsSync('./output')){
-        fs.rmSync('./output', { recursive: true })
+    let worldRuntime = JSON.parse(fs.readFileSync(source).toString())
+
+    if(!worldRuntime['minecraft:entity'].description.animations){
+        worldRuntime['minecraft:entity'].description.animations = {}
     }
 
-    fs.mkdirSync('./output')
-    fs.mkdirSync('./output/animations')
+    if(!worldRuntime['minecraft:entity'].description.properties){
+        worldRuntime['minecraft:entity'].description.properties = {}
+    }
 
-    fs.copyFileSync('./data/world_runtime_template.json', './output/world_runtime.json')
+    if(!worldRuntime['minecraft:entity'].events){
+        worldRuntime['minecraft:entity'].events = {}
+    }
 
-    let worldRuntime = JSON.parse(fs.readFileSync('./output/world_runtime.json').toString())
+    if(!worldRuntime['minecraft:entity'].description.scripts){
+        worldRuntime['minecraft:entity'].description.scripts = {}
+    }
+
+    if(!worldRuntime['minecraft:entity'].description.scripts.animate){
+        worldRuntime['minecraft:entity'].description.scripts.animate = []
+    }
+
+    worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_update')
+    worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_delay')
 
     let blocks = {}
 
@@ -70,6 +83,12 @@ export function compile(tree){
         return result
     }
 
+    function indexFlag(flag){
+        if(!flags.includes(flag.value)){
+            flags.push(flag.value)
+        }
+    }
+
     function optimizeExpression(expression){
         let dynamic = false
 
@@ -99,6 +118,14 @@ export function compile(tree){
             }
 
             if(expression.value[1].token == 'FLAG' || expression.value[2].token == 'FLAG'){
+                if(expression.value[1].token == 'FLAG'){
+                    indexFlag(expression.value[1])
+                }
+
+                if(expression.value[2].token == 'FLAG'){
+                    indexFlag(expression.value[2])
+                }
+
                 dynamic = true
             }
 
@@ -122,6 +149,8 @@ export function compile(tree){
 
             if(expression.value[1].token == 'FLAG'){
                 dynamic = true
+
+                indexFlag(expression.value[1])
             }
 
             if(expression.value[1].token == 'MOLANG'){
@@ -334,15 +363,8 @@ export function compile(tree){
         return tree
     }
 
-    function indexFlag(flag){
-        if(!flags.includes(flag.value)){
-            flags.push(flag.value)
-        }
-    }
-
     function searchForFlags(tree){
         if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
-
             if(tree.value[0].token == 'EXPRESSION'){
                 const deep = searchForFlags(tree.value[0])
 
@@ -394,7 +416,7 @@ export function compile(tree){
     }
 
     for(let i = 0; i < tree.length; i++){
-        const deep = searchForCodeBlock(tree[i])
+        const deep = searchForFlags(tree[i])
 
         if(deep instanceof Backend.Error){
             return deep
@@ -404,7 +426,7 @@ export function compile(tree){
     }
 
     for(let i = 0; i < tree.length; i++){
-        const deep = searchForFlags(tree[i])
+        const deep = searchForCodeBlock(tree[i])
 
         if(deep instanceof Backend.Error){
             return deep
@@ -469,7 +491,7 @@ export function compile(tree){
             "animation_length": 0.001
         }
 
-        fs.writeFileSync('./output/animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
+        fs.writeFileSync(path + '/animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
 
         worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i]] = 'animation.firework.runtime.' + dynamicValueNames[i]
 
@@ -494,7 +516,7 @@ export function compile(tree){
             "animation_length": 0.001
         }
 
-        fs.writeFileSync('./output/animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
+        fs.writeFileSync(path + '/animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
 
         worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i] + '_inverse'] = 'animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'
 
@@ -518,7 +540,7 @@ export function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                '/' + blocks[blockNames[i]][l].value[1].value
+                                blocks[blockNames[i]][l].value[1].value
                             ]
                         }
                     })
@@ -527,7 +549,7 @@ export function compile(tree){
                         data.sequence.push({
                             run_command: {
                                 command: [
-                                    `/event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
+                                    `event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
                                 ]
                             }
                         })
@@ -540,7 +562,7 @@ export function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
@@ -548,7 +570,7 @@ export function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                `/event entity @s[tag=frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
+                                `event entity @s[tag=frw_conditional_${blocks[blockNames[i]][l].value[1].value[0]}] frw:` + blocks[blockNames[i]][l].value[1].value[0]
                             ]
                         }
                     })
@@ -557,7 +579,7 @@ export function compile(tree){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                '/event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_trigger'
+                                'event entity @s frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_trigger'
                             ]
                         }
                     })
@@ -567,8 +589,8 @@ export function compile(tree){
                         let channelData = {
                             run_command: {
                                 command: [
-                                    `/tag @s add frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${delays[blocks[blockNames[i]][l].value[1].value[0]]}_channel_${j}`,
-                                    '/tag @s add added'
+                                    `tag @s add frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${delays[blocks[blockNames[i]][l].value[1].value[0]]}_channel_${j}`,
+                                    'tag @s add added'
                                 ]
                             }
                         }
@@ -585,10 +607,10 @@ export function compile(tree){
                     }
 
                     for(let j = 0; j < config.delayChannels; j++){
-                        delayCallData.run_command.command.push(`/event entity @s[tag=!added, tag=!frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${delays[blocks[blockNames[i]][l].value[1].value[0]]}_channel_${j}] ${'frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_channel_' + j.toString()}`)
+                        delayCallData.run_command.command.push(`event entity @s[tag=!added, tag=!frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${delays[blocks[blockNames[i]][l].value[1].value[0]]}_channel_${j}] ${'frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_channel_' + j.toString()}`)
                     }
 
-                    delayCallData.run_command.command.push(`/tag @s remove added`)
+                    delayCallData.run_command.command.push(`tag @s remove added`)
 
                     worldRuntime['minecraft:entity'].events['frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_trigger'] = delayCallData
 
@@ -598,16 +620,16 @@ export function compile(tree){
                             let timeData = {
                                 run_command: {
                                     command: [
-                                        `/tag @s remove frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k}_channel_${j}`,
-                                        `/tag @s add frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k - 1}_channel_${j}`
+                                        `tag @s remove frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k}_channel_${j}`,
+                                        `tag @s add frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k - 1}_channel_${j}`
                                     ]
                                 }
                             }
 
                             if(k == 1){
                                 timeData.run_command.command = [
-                                    `/tag @s remove frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k}_channel_${j}`,
-                                    `/event entity @s frw:${blocks[blockNames[i]][l].value[1].value[0]}`
+                                    `tag @s remove frw_${blocks[blockNames[i]][l].value[1].value[0]}_time_${k}_channel_${j}`,
+                                    `event entity @s frw:${blocks[blockNames[i]][l].value[1].value[0]}`
                                 ]
                             }
     
@@ -618,7 +640,7 @@ export function compile(tree){
                     //Add Delay Stepping
                     for(let j = 0; j < config.delayChannels; j++){
                         for(let k = delays[blocks[blockNames[i]][l].value[1].value[0]]; k > 0; k--){
-                            delaySteps.unshift(`/event entity @s[tag=frw_${blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()}] ${'frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()}`)
+                            delaySteps.unshift(`event entity @s[tag=frw_${blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()}] ${'frw:' + blocks[blockNames[i]][l].value[1].value[0] + '_time_' + k.toString() + '_channel_' + j.toString()}`)
                         }
                     }
                 }
@@ -628,7 +650,7 @@ export function compile(tree){
                         {
                             run_command: {
                                 command: [
-                                    `/event entity @s frw:set_${blocks[blockNames[i]][l].value[0].value}`
+                                    `event entity @s frw:set_${blocks[blockNames[i]][l].value[0].value}`
                                 ]
                             }
                         }
@@ -638,7 +660,7 @@ export function compile(tree){
                         {
                             run_command: {
                                 command: [
-                                    `/event entity @s frw:unset_${blocks[blockNames[i]][l].value[0].value}`
+                                    `event entity @s frw:unset_${blocks[blockNames[i]][l].value[0].value}`
                                 ]
                             }
                         }
@@ -685,11 +707,11 @@ export function compile(tree){
         "animation_length": 0.1
     }
 
-    fs.writeFileSync('./output/animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
+    fs.writeFileSync(path + '/animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
 
     worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
     worldRuntime['minecraft:entity'].description.animations['frw_delay'] = 'animation.firework.runtime.' + delayID + '.delay'
 
 
-    fs.writeFileSync('./output/world_runtime.json', JSON.stringify(worldRuntime, null, 4))
+    fs.writeFileSync(source, JSON.stringify(worldRuntime, null, 4))
 }

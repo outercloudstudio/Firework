@@ -1,0 +1,15 @@
+func start => {
+  non()
+
+  delay(10) => {
+    rc("say 1")
+
+    delay(10) => {
+        rc("say 2")
+
+        delay(10) => {
+            rc("say 3")
+        }
+    }
+  }
+}

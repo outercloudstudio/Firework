@@ -1,4 +1,4 @@
-const Backend = require('./Backend')
+import * as Backend from './Backend.js'
 
 function isInteger(str){
     if(typeof str != 'string') return false
@@ -55,7 +55,7 @@ const keywords = [
     'delay'
 ]
 
-function tokenize(input) {
+export function Tokenize(input) {
     let tokens = []
 
     let readStart = 0
@@ -142,5 +142,3 @@ function tokenize(input) {
 
     return tokens
 }
-
-module.exports = { tokenize }

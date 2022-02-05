@@ -1,5 +1,5 @@
-const util = require('util')
-const Backend = require('./Backend')
+import * as util from 'util'
+import * as Backend from './Backend.js'
 
 function sleep(milliseconds) {
     const date = Date.now();
@@ -129,7 +129,7 @@ function buildCompoundTypes(tokens){
 
                     let resultString = ''
 
-                    for(j in tokensInString){
+                    for(let j = 0; j < tokensInString.length; j++){
                         resultString += tokensInString[j].value
                     }
 
@@ -763,7 +763,7 @@ function buildFlagAssignments(tokens){
     return tokens
 }
 
-function generateETree(tokens){
+export function GenerateETree(tokens){
     tokens = splitLines(tokens)
     
     tokens = buildCodeBlocks(tokens)
@@ -776,6 +776,18 @@ function generateETree(tokens){
 
     if(tokens instanceof Backend.Error){
       return tokens
+    }
+
+    let allEmpty = true
+
+    for(let i = 0; i < tokens.length; i++){
+        if(tokens[i].length != 0){
+            allEmpty = false
+        }
+    }
+
+    if(allEmpty){
+        return new Backend.Error('File was empty!')
     }
 
     tokens = buildParams(tokens)
@@ -824,5 +836,3 @@ function generateETree(tokens){
 
     return tokens
 }
-
-module.exports = { generateETree }

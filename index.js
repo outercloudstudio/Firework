@@ -93,7 +93,7 @@ async function setupProject(path){
     if(fs.existsSync(path + '/.firework')){
         spinner.error()
 
-        console.log(chalk.hex('#ea323c').bold('Error:'), 'That project is already setup!')
+        console.log(chalk.hex('#ea323c').bold('Error:') + ' That project is already setup!')
 
         process.exit(1)
     }
@@ -111,7 +111,7 @@ async function setupProject(path){
 
 async function configureProject(path){
     if(!fs.existsSync(path + '/.firework')){
-        console.log(chalk.hex('#ea323c').bold('Error:'), 'That project is not setup!')
+        console.log(chalk.hex('#ea323c').bold('Error:') + ' That project is not setup!')
 
         process.exit(1)
     }
@@ -136,7 +136,7 @@ async function removeProject(path){
     if(!fs.existsSync(path + '/.firework')){
         spinner.error()
 
-        console.log(chalk.hex('#ea323c').bold('Error:'), 'That project is not setup!')
+        console.log(chalk.hex('#ea323c').bold('Error:') + ' That project is not setup!')
 
         process.exit(1)
     }
@@ -167,8 +167,7 @@ async function chooseProject(path){
                     'Setup',
                     'Configure',
                     'Remove',
-                    'Compile',
-                    'Exit'
+                    'Compile'
                 ]
             })
         
@@ -180,16 +179,14 @@ async function chooseProject(path){
                 removeProject(project.project)
             }else if(confirm.confirm == 'Compile'){
                 compileProject(project.project, path)
-            }else if(confirm.confirm == 'Exit'){
-                process.exit(0)
             }
         }else{
-            console.log(chalk.hex('#ea323c').bold('Error:'), 'That project folder is not a bridge. v2 project!')
+            console.log(chalk.hex('#ea323c').bold('Error:') + ' That project folder is not a bridge. v2 project!')
 
             chooseProject(path)
         }
     }else{
-        console.log(chalk.hex('#ea323c').bold('Error:'), 'That project folder does not exist.')
+        console.log(chalk.hex('#ea323c').bold('Error:') + ' That project folder does not exist.')
 
         chooseProject(path)
     }

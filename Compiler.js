@@ -1,10 +1,10 @@
-const util = require('util')
-const fs = require('fs')
-const { v4: uuidv4 } = require('uuid')
-const Backend = require('./Backend')
-const config = require('./data/config')
+import * as util from 'util'
+import * as fs from 'fs'
+import { v4 as uuidv4 } from 'uuid'
+import * as Backend from './Backend.js'
+import * as config from './data/config.json'
 
-function compile(tree){
+export function compile(tree){
     //console.log(util.inspect(tree, false, null, true /* enable colors */))
 
     if(fs.existsSync('./output')){
@@ -693,5 +693,3 @@ function compile(tree){
 
     fs.writeFileSync('./output/world_runtime.json', JSON.stringify(worldRuntime, null, 4))
 }
-
-module.exports = { compile }

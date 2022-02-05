@@ -54,6 +54,10 @@ function buildCodeBlocks(tokens){
             if(tokens[x][y].value == '}' && tokens[x][y].token == 'SYMBOL'){
                 let openPath = openPaths.pop()
 
+                if(!openPath){
+                    return new Backend.Error('Unexpected }!')
+                }
+
                 let inBlockLines = []
 
                 for(let i = openPath.x; i <= x; i++){

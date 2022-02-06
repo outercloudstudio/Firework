@@ -148,6 +148,32 @@ export async function Start(path, com){
 
           spinner2.success()
 
+          const spinner3 = createSpinner('Waiting for source JSON of ' + targetFileName + '...').start()
+
+          let sourceJson = null
+
+          let waits = 0
+
+          while(!sourceJson && waits < 100){
+            try{
+              sourceJson = JSON.parse(fs.readFileSync(sourceFilePath))
+            }catch{}
+
+            waits++
+
+            await sleep(100)
+          }
+
+          if(waits >= 100){
+            spinner3.fail()
+
+            console.log(chalk.hex('#ffc825').bold('Warning:') + ' Failed to load ' + files[i])
+
+            continue
+          }else{
+            spinner3.success()
+          }
+
           const result = CompileFile(sourceFilePath, targetFilePath, com + '/development_behavior_packs/' + projectName + ' BP', JSON.parse(fs.readFileSync(path + '/.firework/config.json')))
 
           if(result instanceof Backend.Error){

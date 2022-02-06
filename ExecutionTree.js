@@ -119,6 +119,8 @@ function buildCompoundTypes(tokens){
             }
         }
 
+        let removed = false
+
         //Remove Whitespace and Create Strings
         for(let i = 0; i < tokens[l].length; i++){
             const token = tokens[l][i]
@@ -153,7 +155,15 @@ function buildCompoundTypes(tokens){
                 tokens.splice(l, 1)
 
                 l--
+
+                removed = true
+
+                break
             }
+        }
+
+        if(removed){
+            continue
         }
 
         if(inString){

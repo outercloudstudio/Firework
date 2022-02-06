@@ -447,18 +447,26 @@ export function Compile(tree, config, source, path){
         worldRuntime['minecraft:entity'].description.properties['frw:' + flags[i]] = data
 
         let eventData = {
-            set_actor_property: {}
+            set_actor_property: {},
+            run_command: {
+                command: []
+            }
         }
         
         eventData.set_actor_property['frw:' + flags[i]] = 1
+        eventData.run_command.command.push(`tag @s add frw:${flags[i]}`)
 
         worldRuntime['minecraft:entity'].events['frw:set_' + flags[i]] = eventData
 
         eventData = {
-            set_actor_property: {}
+            set_actor_property: {},
+            run_command: {
+                command: []
+            }
         }
         
         eventData.set_actor_property['frw:' + flags[i]] = 0
+        eventData.run_command.command.push(`tag @s remove frw:${flags[i]}`)
 
         worldRuntime['minecraft:entity'].events['frw:unset_' + flags[i]] = eventData
     }

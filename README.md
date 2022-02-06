@@ -21,6 +21,70 @@ npm install nanospinner
 3. DON'T CLOSE THE TERMINAL
 4. To compile again just restart the dev the server using bridge. v2
 
+# Features
+## Functions
+Create functions for reusing code around the script.
+```
+func hello => {
+    rc("say hello world")
+}
+```
+Firework comes with 2 native functions you can use:
+1. Start
+2. Update
+
+Start is called once when the enity is spawned and update is called every tick.
+## IF Statements
+Use molang and flags and expression to create dynamic conditions.
+```
+func start => {
+    if(?"q.position(1) < 64") => {
+        rc("say below sea level!")
+    }
+}
+```
+## Delays
+Use delays to create pauses or a wait for 1 tick. This can also be used to loop.
+```
+func start => {
+    delay(10) => {
+        rc("3")
+
+        delay(10) => {
+            rc("2")
+
+            delay(10) => {
+                rc("1")
+            }
+        }
+    }
+}
+```
+## Constants
+Create constants for later use in the script.
+```
+const foo = false
+```
+## Flags
+Use flags to store a dynamic boolean value.
+```
+func start => {
+    $foo = false
+
+    if($foo) => {
+        rc("say bar!")
+    }
+}
+```
+## Dynamic Flags
+Create dynamic flags to make a flag update every tick with a molang value.
+```
+dyn foo = ?"q.position(0) > 100"
+```
+
+## Addon to Addons
+Firework will automatically addon to your existing projects and enitities!
+
 # Examples
 ## Basic Script
 This script runns every tick and places a block at the entities position.

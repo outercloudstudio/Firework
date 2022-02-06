@@ -91,6 +91,15 @@ export async function Start(path, com){
           }, null, 2))
         }
 
+        if(!JSON.parse(fs.readFileSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/tick.json')).values.includes('firework_runtime')){
+          fs.writeFileSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/tick.json', JSON.stringify({
+            values: [
+              'firework_runtime',
+              ...JSON.parse(fs.readFileSync(com + '/development_behavior_packs/' + projectName + ' BP/functions/tick.json')).values
+            ]
+          }, null, 2))
+        }
+
         fs.copyFileSync('./data/firework_runtime.mcfunction', com + '/development_behavior_packs/' + projectName + ' BP/functions/firework_runtime.mcfunction')
 
         if(!fs.existsSync(com + '/development_behavior_packs/' + projectName + ' BP/animations/')){

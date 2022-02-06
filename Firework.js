@@ -154,7 +154,7 @@ export async function Start(path, com){
 
           let waits = 0
 
-          while(!sourceJson && waits < 100){
+          while((!sourceJson || sourceJson.__error__) && waits < 50){
             try{
               sourceJson = JSON.parse(fs.readFileSync(sourceFilePath))
             }catch{}
@@ -164,8 +164,8 @@ export async function Start(path, com){
             await sleep(100)
           }
 
-          if(waits >= 100){
-            spinner3.fail()
+          if(waits >= 50){
+            spinner3.error()
 
             console.log(chalk.hex('#ffc825').bold('Warning:') + ' Failed to load ' + files[i])
 

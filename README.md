@@ -123,7 +123,7 @@ func update => {
 - Calling ✔️
 ## Start and Update Functions ✔️
 ## If Statements ✔️
-## Delays ⚠️
+## Delays ✔️
     Done by setting a tag that then gets count down every 0.1 secs in an animation and
     then removes the tag when it reaches 0 and calls the final code block.
 ## Molang In Expressions ✔️

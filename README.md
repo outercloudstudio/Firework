@@ -48,13 +48,13 @@ Use delays to create pauses or a wait for 1 tick. This can also be used to loop.
 ```
 func start => {
     delay(10) => {
-        rc("3")
+        rc("say 3")
 
         delay(10) => {
-            rc("2")
+            rc("say 2")
 
             delay(10) => {
-                rc("1")
+                rc("say 1")
             }
         }
     }

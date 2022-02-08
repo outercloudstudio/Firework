@@ -114,22 +114,34 @@ func update => {
 ```
 
 # Roadmap
-## Constants ✔️
-## Tags ✔️
-- Reading ✔️
-- Setting ✔️
-## Functions ✔️
-- Defining ✔️
-- Calling ✔️
-## Start and Update Functions ✔️
-## If Statements ✔️
-## Delays ✔️
-    Done by setting a tag that then gets count down every 0.1 secs in an animation and
-    then removes the tag when it reaches 0 and calls the final code block.
-## Molang In Expressions ✔️
-## Random Booleans ✔️
-    Done by reading a flag that is updated every tick by a random function.
-## While Loops ➡️
-    Done by continously calling the code block until the condition is false.
-## For Loops ➡️
-    Done by counting down a variable like delay but without waiting.
+```
+✔️ = Complete
+⚠️ = Inprogress
+💡 = For future
+```
+
+- Constants ✔️
+- Tags ✔️
+- Functions ✔️
+- Start and Update Functions ✔️
+- If Statements ✔️
+- Delays ✔️
+- Molang In Expressions ✔️
+- Random Booleans ✔️
+- Reliable Update ⚠️
+- Force Update Flags ⚠️
+- While Loops 💡
+- For Loops 💡
+- Integer Flag Support 💡
+- Mixin Inheritence 💡
+- Cache System 💡
+- Scoreboard Interaction 💡
+- Flag Name Inference 💡
+- Float Support 💡
+- Util commands like: 💡
+```
+move(1, 0, 0)
+die()
+destroy()
+log("Hello")
+```

@@ -113,6 +113,21 @@ func update => {
 }
 ```
 
+# Known Limitations
+## Float Support
+At the moment firework does not have float support, however that is to change.
+## String Support
+Due to the limitations of addons string might be difficult and computationally expensive so experiments will be done with this but it is not garunteed to be added.
+## Delayed IFs
+Due to the limitations of addons if statements will use the state from the previous tick. In order to get around this you need to delay the if by 1:
+```
+delay(1) => {
+    if($foo) => {
+        $bar = true
+    }
+}
+```
+
 # Roadmap
 ```
 ✔️ = Complete

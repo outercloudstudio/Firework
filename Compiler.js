@@ -432,6 +432,7 @@ export function Compile(tree, config, source, path){
         tree[i] = deep
     }
 
+    //TODO: Make reliable
     for(let i = 0; i < flags.length; i++){
         let data = {
             default: 0,
@@ -470,6 +471,7 @@ export function Compile(tree, config, source, path){
 
     const dynamicValueNames = Object.getOwnPropertyNames(dynamicValues)
 
+    //TODO: Make reliable
     for(let i = 0; i < dynamicValueNames.length; i++){
         let data = {
             default: 0,

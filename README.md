@@ -129,7 +129,7 @@ func update => {
 - Molang In Expressions ✔️
 - Random Booleans ✔️
 - Reliable Update ✔️
-- Force Update Flags ⚠️
+- Force Update Flags 🛑
 - While Loops 💡
 - For Loops 💡
 - Integer Flag Support 💡

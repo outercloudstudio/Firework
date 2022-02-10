@@ -128,7 +128,7 @@ func update => {
 - Delays ✔️
 - Molang In Expressions ✔️
 - Random Booleans ✔️
-- Reliable Update ⚠️
+- Reliable Update ✔️
 - Force Update Flags ⚠️
 - While Loops 💡
 - For Loops 💡

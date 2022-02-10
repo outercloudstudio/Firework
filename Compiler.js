@@ -28,9 +28,6 @@ export function Compile(tree, config, source, path){
         worldRuntime['minecraft:entity'].description.scripts.animate = []
     }
 
-    worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_update')
-    worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_delay')
-
     let blocks = {}
 
     let delays = {}
@@ -685,41 +682,6 @@ export function Compile(tree, config, source, path){
             command: delaySteps
         }
     }
-
-    let updateData = {
-        "format_version": "1.10.0",
-        "animations": {}
-    }
-
-    const updateID = uuidv4()
-
-    updateData.animations['animation.firework.runtime.' + updateID + '.update'] = {
-        "loop": true,
-        "timeline": {
-            "0.0": [
-                `/event entity @s frw:update`
-            ]
-        },
-        "animation_length": 0.001
-    }
-
-    const delayID = uuidv4()
-
-    updateData.animations['animation.firework.runtime.' + delayID + '.delay'] = {
-        "loop": true,
-        "timeline": {
-            "0.0": [
-                `/event entity @s frwb:delay`
-            ]
-        },
-        "animation_length": 0.1
-    }
-
-    fs.writeFileSync(path + '/animations/frw_' + updateID + '_update.json', JSON.stringify(updateData, null, 4))
-
-    worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
-    worldRuntime['minecraft:entity'].description.animations['frw_delay'] = 'animation.firework.runtime.' + delayID + '.delay'
-
 
     fs.writeFileSync(source, JSON.stringify(worldRuntime, null, 4))
 }

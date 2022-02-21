@@ -1,12 +1,9 @@
-import * as util from 'util'
-import * as fs from 'fs'
-import { v4 as uuidv4 } from 'uuid'
 import * as Backend from './Backend.js'
 
-export function Compile(tree, config, source, path){
-    //console.log(util.inspect(tree, false, null, true /* enable colors */))
+export function Compile(tree, config, source){
+    let worldRuntime = source
 
-    let worldRuntime = JSON.parse(fs.readFileSync(source).toString())
+    let outAnimations = {}
 
     if(!worldRuntime['minecraft:entity'].description.animations){
         worldRuntime['minecraft:entity'].description.animations = {}
@@ -283,7 +280,7 @@ export function Compile(tree, config, source, path){
             block.value[i] = deep
         }
 
-        let ID = uuidv4()
+        let ID = Backend.uuidv4()
 
         if(preferedID != null && !blocks[preferedID]){
             ID = preferedID
@@ -498,7 +495,7 @@ export function Compile(tree, config, source, path){
             "animation_length": 0.001
         }
 
-        fs.writeFileSync(path + '/animations/frw_' + dynamicValueNames[i] + '.json', JSON.stringify(animCont, null, 4))
+        outAnimations['frw_' + dynamicValueNames[i] + '.json'] = JSON.stringify(animCont, null, 4)
 
         worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i]] = 'animation.firework.runtime.' + dynamicValueNames[i]
 
@@ -523,7 +520,7 @@ export function Compile(tree, config, source, path){
             "animation_length": 0.001
         }
 
-        fs.writeFileSync(path + '/animations/frw_' + dynamicValueNames[i] + '_inverse.json', JSON.stringify(animCont, null, 4))
+        outAnimations['frw_' + dynamicValueNames[i] + '_inverse.json'] = JSON.stringify(animCont, null, 4)
 
         worldRuntime['minecraft:entity'].description.animations[dynamicValueNames[i] + '_inverse'] = 'animation.firework.runtime.' + dynamicValueNames[i] + '.inverse'
 
@@ -685,5 +682,8 @@ export function Compile(tree, config, source, path){
         }
     }
 
-    fs.writeFileSync(source, JSON.stringify(worldRuntime, null, 4))
+    return {
+        animations: outAnimations,
+        entity: worldRuntime
+    }
 }

@@ -1,4 +1,3 @@
-import * as util from 'util'
 import * as Backend from './Backend.js'
 
 function sleep(milliseconds) {
@@ -328,7 +327,7 @@ function buildExpressionsSingle(tokens){
                 }
 
                 if(deep.length != 1){
-                    return new Backend.Error('Unresolved symbols 01:\n' + util.inspect(deep, false, null, false))
+                    return new Backend.Error('Unresolved symbols 01:\n' + JSON.stringify(deep))
                 }
 
                 tokens.splice(i, endingIndex - i + 1, deep[0])
@@ -516,7 +515,7 @@ function buildParamsSingle(tokens){
                             }
 
                             if(parsed.length != 1){
-                                return new Backend.Error('Unresolved symbols 02:\n' + util.inspect(parsed, false, null, false))
+                                return new Backend.Error('Unresolved symbols 02:\n' + JSON.stringify(parsed))
                             }
 
                             tokens.splice(j - 1, endIndex - j + 2, parsed[0])
@@ -565,7 +564,7 @@ function buildParamsSingle(tokens){
                         }
 
                         if(group.length != 1){
-                            return new Backend.Error('Unresolved symbols 03:\n' + util.inspect(group, false, null, false))
+                            return new Backend.Error('Unresolved symbols 03:\n' + JSON.stringify(group))
                         }
 
                         groups.push(group[0])
@@ -581,7 +580,7 @@ function buildParamsSingle(tokens){
                 }
 
                 if(group.length != 1){
-                    return new Backend.Error('Unresolved symbols 04:\n' + util.inspect(group, false, null, false))
+                    return new Backend.Error('Unresolved symbols 04:\n' + JSON.stringify(group))
                 }
 
                 groups.push(group[0])
@@ -840,13 +839,10 @@ export function GenerateETree(tokens){
       return tokens
     }
 
-    //console.log(util.inspect(tokens, false, null, false))
-
     for(let l = 0; l < tokens.length; l++){
         if(tokens[l].length != 1){
             tokens[l].splice(l, 1)
             l--
-            //return new Backend.Error('Unresolved symbols 05:\n' + util.inspect(tokens[l], false, null, false))
         }else{
             tokens[l] = tokens[l][0]
         }

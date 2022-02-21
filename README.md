@@ -1,25 +1,27 @@
 # How to Use
 ## Install
-1. Clone this repository onto your local machine.
-2. Make sure you have node installed.
-3. Run these commands:
+1. Get the extension from the bridge. v2 extension library
+2. Add 'firework' to the very end of the compiler config:
 ```
-npm install util
-npm install chalk
-npm install inquirer
-npm install nanospinner
+"compiler": {
+    "plugins": [
+        "typeScript",
+        "entityIdentifierAlias",
+        "customEntityComponents",
+        "customItemComponents",
+        "customBlockComponents",
+        "customCommands",
+        "moLang",
+        [
+            "simpleRewrite",
+            {
+                "packName": "FireLabs"
+            }
+        ],
+        "firework"
+    ]
+}
 ```
-4. Run `npm start`
-
-## Setup Project
-1. Enter the path to your bridge. v2 project
-2. Choose setup
-
-## Compile
-1. Enter the path to your bridge. v2 project
-2. Choose compile
-3. DON'T CLOSE THE TERMINAL
-4. To compile again just restart the dev the server using bridge. v2
 
 # Features
 ## Functions
@@ -159,4 +161,7 @@ move(1, 0, 0)
 die()
 destroy()
 log("Hello")
+cdelay(1) => {
+    log("Hello")
+}
 ```

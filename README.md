@@ -159,4 +159,7 @@ move(1, 0, 0)
 die()
 destroy()
 log("Hello")
+cdelay(1) => {
+    log("Hello")
+}
 ```

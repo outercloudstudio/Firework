@@ -207,19 +207,19 @@ export function Compile(tree, config, source, path){
 
                 expression = { value: (parseInt(expression.value[1].value) <= parseInt(expression.value[2].value)).toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '&&'){
-                if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
+                if(!(expression.value[1].token == 'BOOLEAN' || expression.value[1].token == 'MOLANG' || expression.value[1].token == 'FLAG') || !(expression.value[2].token == 'BOOLEAN' || expression.value[2].token == 'MOLANG' || expression.value[2].token == 'FLAG')){
                     return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (expression.value[1].value == 'true' && expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '||'){
-                if(!(expression.value[1].token == 'BOOLEAN' && expression.value[2].token == 'BOOLEAN')){
+                if(!(expression.value[1].token == 'BOOLEAN' || expression.value[1].token == 'MOLANG' || expression.value[1].token == 'FLAG') || !(expression.value[2].token == 'BOOLEAN' || expression.value[2].token == 'MOLANG' || expression.value[2].token == 'FLAG')){
                     return new Backend.Error(`Can not do operation ${expression.value[0].value} between types ${expression.value[1].token} and ${expression.value[2].token}!`)
                 }
 
                 expression = { value: (expression.value[1].value == 'true' || expression.value[2].value == 'true').toString(), token: 'BOOLEAN' }
             }else if(expression.value[0].value == '!'){
-                if(!(expression.value[1].token == 'BOOLEAN')){
+                if(!(expression.value[1].token == 'BOOLEAN' || expression.value[1].token == 'MOLANG' || expression.value[1].token == 'FLAG')){
                     return new Backend.Error(`Can not do operation ${expression.value[0].value} on type ${expression.value[1].token}!`)
                 }
 

@@ -1,4 +1,3 @@
-import * as util from 'util'
 import * as Backend from './Backend.js'
 
 function sleep(milliseconds) {
@@ -328,7 +327,7 @@ function buildExpressionsSingle(tokens){
                 }
 
                 if(deep.length != 1){
-                    return new Backend.Error('Unresolved symbols:\n' + util.inspect(deep, false, null, false))
+                    return new Backend.Error('Unresolved symbols 01:\n' + JSON.stringify(deep))
                 }
 
                 tokens.splice(i, endingIndex - i + 1, deep[0])
@@ -451,7 +450,7 @@ function buildExpressionsSingle(tokens){
             let prevToken = tokens[i - 1]
 
             if(prevToken && nextNextToken){
-                if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG')){
+                if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'MOLANG') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG')){
                     return new Backend.Error(`Can not do operation '${token.value + nextToken.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
                 }
 
@@ -516,7 +515,7 @@ function buildParamsSingle(tokens){
                             }
 
                             if(parsed.length != 1){
-                                return new Backend.Error('Unresolved symbols:\n' + util.inspect(parsed, false, null, false))
+                                return new Backend.Error('Unresolved symbols 02:\n' + JSON.stringify(parsed))
                             }
 
                             tokens.splice(j - 1, endIndex - j + 2, parsed[0])
@@ -565,7 +564,7 @@ function buildParamsSingle(tokens){
                         }
 
                         if(group.length != 1){
-                            return new Backend.Error('Unresolved symbols:\n' + util.inspect(group, false, null, false))
+                            return new Backend.Error('Unresolved symbols 03:\n' + JSON.stringify(group))
                         }
 
                         groups.push(group[0])
@@ -581,7 +580,7 @@ function buildParamsSingle(tokens){
                 }
 
                 if(group.length != 1){
-                    return new Backend.Error('Unresolved symbols:\n' + util.inspect(group, false, null, false))
+                    return new Backend.Error('Unresolved symbols 04:\n' + JSON.stringify(group))
                 }
 
                 groups.push(group[0])
@@ -842,10 +841,11 @@ export function GenerateETree(tokens){
 
     for(let l = 0; l < tokens.length; l++){
         if(tokens[l].length != 1){
-            return new Backend.Error('Unresolved symbols:\n' + util.inspect(tokens[l], false, null, false))
+            tokens[l].splice(l, 1)
+            l--
+        }else{
+            tokens[l] = tokens[l][0]
         }
-
-        tokens[l] = tokens[l][0]
     }
 
     return tokens

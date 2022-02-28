@@ -89,7 +89,7 @@
                 result = `(q.actor_property('frw:${expression.value}'))`;
             }else if(expression.token == 'CALL'){
                 if(expression.value[0].value == 'rand'){
-                    result = `(math.die_roll(1, 0, 1) > 0.45)`;
+                    result = `(math.die_roll(1, 0, 1) >= 0.5)`;
                 }else {
                     return new Error(`Method '${expression.value[0].value}' is not supported in an expression!`)
                 }
@@ -705,6 +705,29 @@
             }
         };
 
+        let updateData = {
+            "format_version": "1.10.0",
+            "animations": {}
+        };
+
+        const updateID = uuidv4();
+
+        updateData.animations['animation.firework.runtime.' + updateID + '.update'] = {
+            "loop": true,
+            "timeline": {
+                "0.0": [
+                    `/event entity @s frw:update`,
+                    `/event entity @s frwb:delay`
+                ]
+            },
+            "animation_length": 0.001
+        };
+
+        outAnimations['frw_' + updateID + '_update.json'] = JSON.stringify(updateData, null, 4);
+
+        worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update';
+        worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_update');
+
         return {
             animations: outAnimations,
             entity: worldRuntime
@@ -1153,7 +1176,7 @@
                 let prevToken = tokens[i - 1];
 
                 if(prevToken && nextNextToken){
-                    if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'MOLANG') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG')){
+                    if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'CALL') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG' || prevToken.token == 'CALL')){
                         return new Error(`Can not do operation '${token.value + nextToken.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
                     }
 

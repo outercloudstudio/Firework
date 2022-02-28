@@ -66,7 +66,7 @@ export function Compile(tree, config, source){
             result = `(q.actor_property('frw:${expression.value}'))`
         }else if(expression.token == 'CALL'){
             if(expression.value[0].value == 'rand'){
-                result = `(math.die_roll(1, 0, 1) > 0.45)`
+                result = `(math.die_roll(1, 0, 1) >= 0.5)`
             }else{
                 return new Backend.Error(`Method '${expression.value[0].value}' is not supported in an expression!`)
             }
@@ -681,6 +681,29 @@ export function Compile(tree, config, source){
             command: delaySteps
         }
     }
+
+    let updateData = {
+        "format_version": "1.10.0",
+        "animations": {}
+    }
+
+    const updateID = Backend.uuidv4()
+
+    updateData.animations['animation.firework.runtime.' + updateID + '.update'] = {
+        "loop": true,
+        "timeline": {
+            "0.0": [
+                `/event entity @s frw:update`,
+                `/event entity @s frwb:delay`
+            ]
+        },
+        "animation_length": 0.001
+    }
+
+    outAnimations['frw_' + updateID + '_update.json'] = JSON.stringify(updateData, null, 4)
+
+    worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
+    worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_update')
 
     return {
         animations: outAnimations,

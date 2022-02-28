@@ -170,3 +170,4 @@ cdelay(1) => {
     log("Hello")
 }
 ```
+- Component adding and Removing

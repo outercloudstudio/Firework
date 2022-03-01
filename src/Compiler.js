@@ -1,6 +1,8 @@
 import * as Backend from './Backend.js'
+import * as Native from './Native.js'
 
 export function Compile(tree, config, source){
+    //#region NOTE: Setup json values for editing
     let worldRuntime = source
 
     let outAnimations = {}
@@ -24,7 +26,10 @@ export function Compile(tree, config, source){
     if(!worldRuntime['minecraft:entity'].description.scripts.animate){
         worldRuntime['minecraft:entity'].description.scripts.animate = []
     }
+    //#endregion
 
+
+    //#region NOTE: Create variables to be added to durring overviewing the execution tree
     let blocks = {}
 
     let delays = {}
@@ -36,7 +41,10 @@ export function Compile(tree, config, source){
     let flags = []
 
     let delaySteps = []
+    //#endregion
 
+
+    //#region NOTE: Expression to molang to be used in setting values
     function expressionToMolang(expression){
         let result = ''
 
@@ -65,11 +73,19 @@ export function Compile(tree, config, source){
         }else if(expression.token == 'FLAG'){
             result = `(q.actor_property('frw:${expression.value}'))`
         }else if(expression.token == 'CALL'){
-            if(expression.value[0].value == 'rand'){
-                result = `(math.die_roll(1, 0, 1) >= 0.5)`
-            }else{
-                return new Backend.Error(`Method '${expression.value[0].value}' is not supported in an expression!`)
+            if(!Native.doesFunctionExist(expression.value[0].value)){
+                return new Backend.Error(`Method '${expression.value[0].value}' does not exist!`)
             }
+
+            if(!Native.doesFunctionSupportMolang(expression.value[0].value)){
+                return new Backend.Error(`Method '${expression.value[0].value}' is not supported in expression!`)
+            }
+
+            if(!Native.doesFunctionExistWithTemplate(expression.value[0].value, expression.value.slice(1))){
+                return new Backend.Error(`Method '${expression.value[0].value}' does not match any template!`)
+            }
+
+            result = Native.getFunction(expression.value[0].value, expression.value.slice(1))
         }else{
             return new Backend.Error('Unknown expression token: ' + expression.token + '!')
         }
@@ -82,7 +98,10 @@ export function Compile(tree, config, source){
             flags.push(flag.value)
         }
     }
+    //#endregion
 
+    
+    //#region NOTE: Optimizes expressions for molang
     function optimizeExpression(expression){
         let dynamic = false
 
@@ -232,7 +251,10 @@ export function Compile(tree, config, source){
 
         return expression
     }
+    //#endregion
 
+
+    //#region NOTE: Optmizes Static Expression
     function searchForExpression(tree){
         if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
             const deep = searchForExpression(tree.value[1].value)
@@ -268,7 +290,7 @@ export function Compile(tree, config, source){
 
         return tree
     }
-
+   
     function indexCodeBlock(block, mode, condition = null, preferedID = null){
         for(let i = 0; i < block.value.length; i++){
             const deep = searchForCodeBlock(block.value[i])
@@ -326,7 +348,10 @@ export function Compile(tree, config, source){
 
         constants[token.value[1].value] = token.value[2]
     }
+    //#endregion
 
+
+    //#region NOTE: Search for code blocks like if, delay, and functions and index it
     function searchForCodeBlock(tree){
         if(tree.token == 'DEFINITION'){
             const deep = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value)
@@ -356,7 +381,10 @@ export function Compile(tree, config, source){
 
         return tree
     }
+    //#endregion
 
+
+    //#region NOTE: Search for flags and index them
     function searchForFlags(tree){
         if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
             if(tree.value[0].token == 'EXPRESSION'){
@@ -386,7 +414,10 @@ export function Compile(tree, config, source){
 
         return tree
     }
+    //#endregion
 
+
+    //#region NOTE: Do All The Searching Indexing And Optimization
     for(let i = 0; i < tree.length; i++){
         const deep = searchForExpression(tree[i])
 
@@ -428,7 +459,10 @@ export function Compile(tree, config, source){
 
         tree[i] = deep
     }
+    //#endregion
 
+
+    //#region NOTE: Create animations json for flags (sets up anims for adding and removing flag tags)
     //TODO: Make reliable
     for(let i = 0; i < flags.length; i++){
         let data = {
@@ -465,7 +499,10 @@ export function Compile(tree, config, source){
 
         worldRuntime['minecraft:entity'].events['frw:unset_' + flags[i]] = eventData
     }
+    //#endregion
 
+
+    //#region NOTE: Create animations for dynamic values like if params and dynamic flags
     const dynamicValueNames = Object.getOwnPropertyNames(dynamicValues)
 
     //TODO: Make reliable
@@ -530,7 +567,10 @@ export function Compile(tree, config, source){
 
         worldRuntime['minecraft:entity'].description.scripts.animate.push(animData)
     }
+    //#endregion
 
+
+    //#region NOTE: Add code blocks as events to entities
     const blockNames = Object.getOwnPropertyNames(blocks)
 
     for(let i = 0; i < blockNames.length; i++){
@@ -540,26 +580,29 @@ export function Compile(tree, config, source){
 
         for(let l = 0; l < blocks[blockNames[i]].length; l++){
             if(blocks[blockNames[i]][l].token == 'CALL'){
-                if(blocks[blockNames[i]][l].value[0].value == 'rc'){
+                const callName = blocks[blockNames[i]][l].value[0].value
+                const callParams = blocks[blockNames[i]][l].value.slice(1)
+
+                if(Native.doesFunctionExist(callName)){
+                    if(!Native.doesFunctionSupportEntity(callName)){
+                        return new Backend.Error(`Method '${callName}' is not supported in code blocks!`)
+                    }
+        
+                    if(!Native.doesFunctionExistWithTemplate(callName, callParams)){
+                        return new Backend.Error(`Method '${callName}' does not match any template!`)
+                    }
+
+                    data.sequence.push(Native.getFunction(callName, callParams))
+                }else if(blocks[callName]){
                     data.sequence.push({
                         run_command: {
                             command: [
-                                blocks[blockNames[i]][l].value[1].value
+                                `event entity @s frw:${callName}`
                             ]
                         }
                     })
                 }else{
-                    if(blocks[blocks[blockNames[i]][l].value[0].value]){
-                        data.sequence.push({
-                            run_command: {
-                                command: [
-                                    `event entity @s frw:${blocks[blockNames[i]][l].value[0].value}`
-                                ]
-                            }
-                        })
-                    }else{
-                        return new Backend.Error(`Attemped to call undefined method ${blocks[blockNames[i]][l].value[0].value}!`)
-                    }
+                    return new Backend.Error(`Method '${callName}' does not exist!`)
                 }
             }else if(blocks[blockNames[i]][l].token == 'DEFINITION' || blocks[blockNames[i]][l].token == 'IF' || blocks[blockNames[i]][l].token == 'DELAY'){
                 if(blocks[blockNames[i]][l].value[1].value[1] == 'normal'){
@@ -675,13 +718,20 @@ export function Compile(tree, config, source){
 
         worldRuntime['minecraft:entity'].events['frw:' + blockNames[i]] = data
     }
+    //#endregion
 
+
+    //#region NOTE: Setup delay steps
     worldRuntime['minecraft:entity'].events['frwb:delay'] = {
         run_command: {
             command: delaySteps
         }
     }
+    //#endregion
 
+
+    //#region NOTE: Setup animations and delay step animations
+    //TODO: Make reliable based on tick.json
     let updateData = {
         "format_version": "1.10.0",
         "animations": {}
@@ -704,6 +754,8 @@ export function Compile(tree, config, source){
 
     worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update'
     worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_update')
+    //#endregion
+
 
     return {
         animations: outAnimations,

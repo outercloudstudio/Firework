@@ -34,7 +34,7 @@
                     animations: {},
                     sequence: [
                         {
-                            runCommand: {
+                            run_command: {
                                 command:[
                                     params[0].value
                                 ]
@@ -57,7 +57,7 @@
                     animations: {},
                     sequence: [
                         {
-                            runCommand: {
+                            run_command: {
                                 command:[
                                     'tp ' + params[0].value
                                 ]
@@ -78,7 +78,7 @@
                     animations: {},
                     sequence: [
                         {
-                            runCommand: {
+                            run_command: {
                                 command:[
                                     'kill @s'
                                 ]
@@ -101,7 +101,7 @@
                     animations: {},
                     sequence: [
                         {
-                            runCommand: {
+                            run_command: {
                                 command:[
                                     'say ' + params[0].value
                                 ]
@@ -258,7 +258,7 @@
     }
 
     function Compile(tree, config, source){
-        //#region NOTE: Setup json values for editing
+        //#region NOTE: Setup json values for editing DONE
         let worldRuntime = source;
 
         let outAnimations = {};
@@ -285,22 +285,19 @@
         //#endregion
 
 
-        //#region NOTE: Create variables to be added to durring overviewing the execution tree
+        //#region NOTE: Create variables to be added to durring overviewing the execution tree DONE
         let blocks = {};
 
         let delays = {};
 
         let dynamicValues = {};
 
-        let constants = {};
-
         let flags = [];
 
         let delaySteps = [];
         //#endregion
 
-
-        //#region NOTE: Expression to molang to be used in setting values
+        //#region NOTE: Expression to molang to be used in setting values DONE
         function expressionToMolang(expression){
             let result = '';
 
@@ -510,7 +507,7 @@
         //#endregion
 
 
-        //#region NOTE: Optmizes Static Expression
+        //#region NOTE: Util Functions
         function searchForExpression(tree){
             if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
                 const deep = searchForExpression(tree.value[1].value);
@@ -520,16 +517,6 @@
                 }
 
                 tree.value[1].value = deep;
-            }else if(tree.token == 'ASSIGN' && tree.value[0].value == 'const'){
-                if(tree.value[2].token == 'EXPRESSION'){
-                    const deep = optimizeExpression(tree.value[2]);
-
-                    if(deep instanceof Error){
-                        return deep
-                    }
-
-                    tree.value[2] = deep;
-                }
             }else if(tree.token == 'CALL'){
                 for(let i = 1; i < tree.value.length; i++){
                     if(tree.value[i].token == 'EXPRESSION'){
@@ -593,21 +580,6 @@
             return block
         }
 
-        function indexConstant(token){
-            if(token.value[2].token == 'EXPRESSION' || token.value[2].dynamic){
-                return new Error(`Can not assign dyncamic value to const ${token.value[1].value}!`)
-            }
-
-            if(constants[token.value[1].value]){
-                return new Error(`Can not initialize constant ${token.value[1].value} more than once!`)
-            }
-
-            constants[token.value[1].value] = token.value[2];
-        }
-        //#endregion
-
-
-        //#region NOTE: Search for code blocks like if, delay, and functions and index it
         function searchForCodeBlock(tree){
             if(tree.token == 'DEFINITION'){
                 const deep = indexCodeBlock(tree.value[1], 'normal', null, tree.value[0].value);
@@ -637,10 +609,7 @@
 
             return tree
         }
-        //#endregion
 
-
-        //#region NOTE: Search for flags and index them
         function searchForFlags(tree){
             if(tree.token == 'DEFINITION' || tree.token == 'IF' || tree.token == 'DELAY'){
                 if(tree.value[0].token == 'EXPRESSION'){
@@ -673,7 +642,7 @@
         //#endregion
 
 
-        //#region NOTE: Do All The Searching Indexing And Optimization
+        //#region NOTE: Do All The Searching Indexing And Optimization 
         for(let i = 0; i < tree.length; i++){
             const deep = searchForExpression(tree[i]);
 
@@ -682,18 +651,6 @@
             }
 
             tree[i] = deep;
-        }
-
-        for(let i = 0; i < tree.length; i++){
-            if(tree[i].token == 'ASSIGN'){
-                if(tree[i].value[0].value == 'const'){
-                    const deep = indexConstant(tree[i]);
-
-                    if(deep instanceof Error){
-                        return deep
-                    }
-                }
-            }
         }
 
         for(let i = 0; i < tree.length; i++){
@@ -977,39 +934,12 @@
         //#endregion
 
 
-        //#region NOTE: Setup delay steps
+        //#region NOTE: Setup delay steps DONE
         worldRuntime['minecraft:entity'].events['frwb:delay'] = {
             run_command: {
                 command: delaySteps
             }
         };
-        //#endregion
-
-
-        //#region NOTE: Setup animations and delay step animations
-        //TODO: Make reliable based on tick.json
-        let updateData = {
-            "format_version": "1.10.0",
-            "animations": {}
-        };
-
-        const updateID = uuidv4();
-
-        updateData.animations['animation.firework.runtime.' + updateID + '.update'] = {
-            "loop": true,
-            "timeline": {
-                "0.0": [
-                    `/event entity @s frw:update`,
-                    `/event entity @s frwb:delay`
-                ]
-            },
-            "animation_length": 0.001
-        };
-
-        outAnimations['frw_' + updateID + '_update.json'] = JSON.stringify(updateData, null, 4);
-
-        worldRuntime['minecraft:entity'].description.animations['frw_update'] = 'animation.firework.runtime.' + updateID + '.update';
-        worldRuntime['minecraft:entity'].description.scripts.animate.push('frw_update');
         //#endregion
 
 
@@ -1338,7 +1268,7 @@
                     }
 
                     if(deep.length != 1){
-                        return new Error('Unresolved symbols 01:\n' + JSON.stringify(deep))
+                        return new Error('Unresolved symbols 01:\n' + JSON.stringify(deep, null, 2))
                     }
 
                     tokens.splice(i, endingIndex - i + 1, deep[0]);
@@ -1416,10 +1346,10 @@
                 if(prevToken && nextToken){
                     if(nextToken.token == 'SYMBOL' && nextToken.value == '='){
                         let nextNextToken = tokens[i + 2];
-                        
+
                         if(token.value == '>' || token.value == '<'){
-                            if(!(nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
-                                return new Error(`Can not do operation '${token.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
+                            if(!(nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'NAME') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || prevToken.token == 'NAME')){
+                                return new Error(`Can not do operation '${token.value + nextToken.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
                             }
                             
                             const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' };
@@ -1428,18 +1358,18 @@
 
                             i--;
                         }else {
-                            if(!(nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'FLAG' || nextNextToken.token == 'MOLANG') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'FLAG' || prevToken.token == 'MOLANG')){
-                                return new Error(`Can not do operation '${token.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
+                            if(!(nextNextToken.token == 'INTEGER' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'FLAG' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'NAME') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'FLAG' || prevToken.token == 'MOLANG' || prevToken.token == 'NAME')){
+                                return new Error(`Can not do operation '${token.value + nextToken.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
                             }
 
                             const newToken = { value: token.value + nextToken.value, token: 'SYMBOL' };
-                                
+
                             tokens.splice(i - 1, 4, { value: [newToken, prevToken, nextNextToken], token: 'EXPRESSION' });
 
                             i--;
                         }
                     }else if(token.value == '>' || token.value == '<'){
-                        if(!(nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION')){
+                        if(!(nextToken.token == 'INTEGER' || nextToken.token == 'EXPRESSION' || nextNextToken.token == 'NAME') || !(prevToken.token == 'INTEGER' || prevToken.token == 'EXPRESSION' || prevToken.token == 'NAME')){
                             return new Error(`Can not do operation '${token.value}' with '${nextToken.token}' and '${prevToken.token}'!`)
                         }
 
@@ -1461,7 +1391,8 @@
                 let prevToken = tokens[i - 1];
 
                 if(prevToken && nextNextToken){
-                    if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'CALL') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG' || prevToken.token == 'CALL')){
+                    if(!(nextNextToken.token == 'FLAG' || nextNextToken.token == 'EXPRESSION' || nextNextToken.token == 'BOOLEAN' || nextNextToken.token == 'MOLANG' || nextNextToken.token == 'CALL' || nextNextToken.token == 'NAME') || !(prevToken.token == 'FLAG' || prevToken.token == 'EXPRESSION' || prevToken.token == 'BOOLEAN' || prevToken.token == 'MOLANG' || prevToken.token == 'CALL' || prevToken.token == 'NAME')){
+                        console.log(tokens);
                         return new Error(`Can not do operation '${token.value + nextToken.value}' with '${nextNextToken.token}' and '${prevToken.token}'!`)
                     }
 
@@ -1526,7 +1457,7 @@
                                 }
 
                                 if(parsed.length != 1){
-                                    return new Error('Unresolved symbols 02:\n' + JSON.stringify(parsed))
+                                    return new Error('Unresolved symbols 02:\n' + JSON.stringify(parsed, null, 2))
                                 }
 
                                 tokens.splice(j - 1, endIndex - j + 2, parsed[0]);
@@ -1575,7 +1506,8 @@
                             }
 
                             if(group.length != 1){
-                                return new Error('Unresolved symbols 03:\n' + JSON.stringify(group))
+                                console.log(group);
+                                return new Error('Unresolved symbols 03:\n' + JSON.stringify(group, null, 2))
                             }
 
                             groups.push(group[0]);
@@ -1591,7 +1523,7 @@
                     }
 
                     if(group.length != 1){
-                        return new Error('Unresolved symbols 04:\n' + JSON.stringify(group))
+                        return new Error('Unresolved symbols 04:\n' + JSON.stringify(group, null, 2))
                     }
 
                     groups.push(group[0]);
@@ -1645,21 +1577,6 @@
                 if(token.token == 'KEYWORD' && token.value == 'dyn' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken){
                     if(!(nextNextNextToken.token == 'MOLANG' || nextNextNextToken.token == 'EXPRESSION')){
                         return new Error(`Dynamic can't be assigned to ${nextNextNextToken.token}!`)
-                    }
-
-                    tokens[l].splice(i, 4, { value: [token, nextToken, nextNextNextToken], token: 'ASSIGN' });
-                }
-            }
-
-            for(let i = 0; i < tokens[l].length; i++){
-                const token = tokens[l][i];
-                const nextToken = tokens[l][i + 1];
-                const nextNextToken = tokens[l][i + 2];
-                const nextNextNextToken = tokens[l][i + 3];
-
-                if(token.token == 'KEYWORD' && token.value == 'const' && nextToken && nextToken.token == 'NAME' && nextNextToken && nextNextToken.token == 'SYMBOL' && nextNextToken.value == '=' && nextNextNextToken){
-                    if(!(nextNextNextToken.token == 'INTEGER' || nextNextNextToken.token == 'BOOLEAN' || nextNextNextToken.token == 'STRING' || nextNextNextToken.token == 'EXPRESSION')){
-                        return new Error(`Constant can't be assigned to ${nextNextNextToken.token}!`)
                     }
 
                     tokens[l].splice(i, 4, { value: [token, nextToken, nextNextNextToken], token: 'ASSIGN' });
@@ -1789,7 +1706,7 @@
 
     function GenerateETree(tokens){
         tokens = splitLines(tokens);
-        
+
         tokens = buildCodeBlocks(tokens);
 
         if(tokens instanceof Error){
@@ -1852,8 +1769,7 @@
 
         for(let l = 0; l < tokens.length; l++){
             if(tokens[l].length != 1){
-                tokens[l].splice(l, 1);
-                l--;
+                return new Error('Unresolved symbols 05:\n' + JSON.stringify(tokens[l], null, 2))
             }else {
                 tokens[l] = tokens[l][0];
             }
@@ -1907,7 +1823,6 @@
 
     const keywords = [
         'if',
-        'const',
         'dyn',
         'func',
         'delay'
@@ -2233,7 +2148,7 @@
 
     			await outputFileSystem.mkdir(outBPPath + 'functions');
 
-    			let mc = 'event entity @e[tag=started2, tag=!started3] frw:start\ntag @e[tag=started2] add started3\ntag @e[tag=started] add started2\ntag @e add started';
+    			let mc = 'event entity @e[tag=started3] frw:update\nevent entity @e[tag=started3] frwb:delay\nevent entity @e[tag=started2, tag=!started3] frw:start\ntag @e[tag=started2] add started3\ntag @e[tag=started] add started2\ntag @e add started';
 
     			await outputFileSystem.writeFile(outBPPath + 'functions/firework_runtime.mcfunction', mc);
 
@@ -2242,7 +2157,9 @@
 
     				tick = JSON.parse(await tick.text());
 
-    				tick.values.push('firework_runtime');
+    				if(!tick.values.includes('firework_runtime')){
+    					tick.values.push('firework_runtime');
+    				}
 
     				await outputFileSystem.writeFile(outBPPath + 'functions/tick.json', JSON.stringify(tick));
     			}catch (ex){

@@ -166,7 +166,7 @@ move(1, 0, 0)
 die()
 destroy()
 log("Hello")
-cdelay(1) => {
+cdelay(1, true) => {
     log("Hello")
 }
 ```

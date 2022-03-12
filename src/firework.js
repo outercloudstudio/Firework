@@ -235,7 +235,7 @@ module.exports = ({ fileType, fileSystem, projectRoot, outputFileSystem, options
 
 			await outputFileSystem.writeFile(outBPPath + 'animations/firework_backend.json', JSON.stringify(animationFile, null, 4))
 
-			outAnimations = {}
+			//outAnimations = {}
 
 			entitiesToCompile = []
         },

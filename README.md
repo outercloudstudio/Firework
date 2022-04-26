@@ -121,9 +121,6 @@ func update => {
 ```
 
 # Syntax
-
-```
-
 __**If**__
 Only runs code if condition is true. Internally adds a slight delay to keep logic reliable.
 ```
